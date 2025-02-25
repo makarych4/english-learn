@@ -1,12 +1,24 @@
 from django.db import models
-# from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 
-# # Create your models here.
-# class User(AbstractUser):
-#     email = models.EmailField(unique=True)
-#     password = models.CharField(max_length=255)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     username = None
+class Song(models.Model):
+    title = models.CharField(max_length=255)
+    artist = models.CharField(max_length=255)
 
-#     USERNAME_FIELD = "email"
-#     REQUIRED_FIELDS = []
+    def __str__(self):
+        return f"{self.artist} - {self.title}"
+
+
+class SongLyrics(models.Model):
+    song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name="lyrics")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    original_line = models.TextField()
+    translated_line = models.TextField()
+    line_number = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ["line_number"]
+        unique_together = ["song", "line_number"]
+
+    def __str__(self):
+        return f"{self.song.title} (Line {self.line_number})"
