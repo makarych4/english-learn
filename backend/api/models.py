@@ -18,6 +18,9 @@ class SongLyrics(models.Model):
 
     class Meta:
         ordering = ["line_number"]
+        # constraints = [
+        #     models.UniqueConstraint(fields=['song', 'line_number'], name='unique_line_per_song')
+        # ]
 
     def __str__(self):
         return f"{self.song.title} (Line {self.line_number})"

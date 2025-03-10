@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_email(self, value):
         """ Проверка, что email уникален """
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with that email already exists.")
+            raise serializers.ValidationError("Пользователь с такой почтой уже существует")
         return value
         
     def create(self, validated_data):
@@ -36,3 +36,19 @@ class SongLyricsSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "song": {"read_only": True}
         }
+
+    # def validate_line_number(self, value):
+    #     """
+    #     Проверяет уникальность line_number в рамках одной песни.
+    #     """
+    #     # При создании
+    #     if self.instance is None:
+    #         song = self.initial_data.get("song")  # Получаем song из данных
+    #     else:
+    #         # При обновлении
+    #         song = self.instance.song
+
+    #     if SongLyrics.objects.filter(song=song, line_number=value).exists():
+    #         raise serializers.ValidationError("This line number already exists for this song.")
+        
+    #     return value
