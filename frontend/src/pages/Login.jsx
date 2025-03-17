@@ -48,7 +48,13 @@ function Login() {
             <button className="form-button" type="submit">
                 {name}
             </button>
+            Нет аккаунта?
+            <button className="register-button" type="button" onClick={() => navigate("/register")}>
+                Зарегистрироваться
+            </button>
         </form>
+        
+
     );
 }
 

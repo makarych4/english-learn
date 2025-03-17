@@ -5,23 +5,21 @@ import SongLyricsLine from "../components/SongLyricsLine";
 
 function EditSong() {
     const { songId } = useParams();
-    const navigate = useNavigate();
     const [lyrics, setLyrics] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        fetchLyrics();
+        getLyrics();
     }, [songId]);
 
-    const fetchLyrics = () => {
-        api.get(`/api/songLyrics/?song_id=${songId}`)
+    const getLyrics = () => {
+        api
+            .get(`/api/songLyrics/${songId}/`)
             .then((res) => {
                 setLyrics(res.data);
-                setIsLoading(false);
             })
             .catch((err) => {
                 alert(err);
-                setIsLoading(false);
             });
     };
 
@@ -34,12 +32,15 @@ function EditSong() {
         };
         const updatedLyrics = [...lyrics];
         updatedLyrics.splice(index, 0, newLine);
-        // Обновляем line_number для всех строк
+    
+        // ПЕРЕСЧЕТ line_number
         updatedLyrics.forEach((line, idx) => {
             line.line_number = idx + 1;
         });
+    
         setLyrics(updatedLyrics);
     };
+    
 
     const handleChangeLine = (index, field, value) => {
         const updatedLyrics = [...lyrics];
@@ -47,34 +48,37 @@ function EditSong() {
         setLyrics(updatedLyrics);
     };
 
-    const handleDeleteLine = (lineId) => {
-        api.delete(`/api/songLyrics/${lineId}/`)
-            .then(() => {
-                fetchLyrics();
-            })
-            .catch((err) => alert(err));
-    };
+    const handleDeleteLine = (index) => {
+        const updatedLyrics = [...lyrics];
+        updatedLyrics.splice(index, 1);
 
-    const handleSave = () => {
-        const savePromises = lyrics.map((line) => {
-            if (line.id) {
-                return api.put(`/api/songLyrics/${line.id}/`, line);
-            } else {
-                return api.post("/api/songLyrics/", line);
-            }
+        // ПЕРЕСЧЕТ line_number
+        updatedLyrics.forEach((line, idx) => {
+            line.line_number = idx + 1;
         });
 
-        Promise.all(savePromises)
+        setLyrics(updatedLyrics);
+    };
+
+
+    const handleSave = () => {
+        // Удаляем все существующие строки
+        api.delete(`/api/songLyrics/delete-all/${songId}/`)
             .then(() => {
-                alert("Изменения сохранены!");
-                navigate("/");
+                // Создаем новые строки
+                const savePromises = lyrics.map((line) => {
+                    return api.post("/api/songLyrics/", line);
+                });
+    
+                Promise.all(savePromises)
+                    .then(() => {
+                        alert("Изменения сохранены!");
+                        navigate("/");
+                    })
+                    .catch((err) => alert(err));
             })
             .catch((err) => alert(err));
     };
-
-    if (isLoading) {
-        return <div>Загрузка...</div>;
-    }
 
     return (
         <div>

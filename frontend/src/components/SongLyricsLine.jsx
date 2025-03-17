@@ -1,5 +1,3 @@
-import React from "react";
-
 function SongLyricsLine({ line, index, onChange, onAddLine, onDeleteLine }) {
     return (
         <div>
@@ -16,8 +14,12 @@ function SongLyricsLine({ line, index, onChange, onAddLine, onDeleteLine }) {
                 onChange={(e) => onChange(index, "translated_line", e.target.value)}
                 placeholder="Перевод"
             />
-            <button onClick={() => onAddLine(index + 1)}>Добавить строку</button>
-            <button onClick={() => onDeleteLine(line.id)}>Удалить строку</button>
+            <button className="add-button" onClick={() => onAddLine(index + 1)}>
+                Добавить строку
+            </button>
+            <button className="delete-button" onClick={() => onDeleteLine(index)}>
+                Удалить строку
+            </button>
         </div>
     );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 import Song from "../components/Song"
 //import "../styles/Home.css"
@@ -7,6 +8,7 @@ function Home() {
     const [songs, setSongs] = useState([]);
     const [title, setTitle] = useState("");
     const [artist, setArtist] = useState("");
+    const navigate = useNavigate();
 
     useEffect(() => {
         getSongs();
@@ -21,6 +23,10 @@ function Home() {
                 console.log(data);
             })
             .catch((err) => alert(err));
+    };
+
+    const editSong = (id) => {
+        navigate(`/edit-song/${id}`)
     };
 
     const deleteSong = (id) => {
@@ -49,10 +55,13 @@ function Home() {
 
     return (
         <div>
+            <button className="logout-button" type="button" onClick={() => navigate("/logout")}>
+                Выйти
+            </button>
             <div>
                 <h2>Песни</h2>
                 {songs.map((song) => (
-                    <Song song={song} onDelete={deleteSong} key={song.id} />
+                    <Song song={song} onEdit={editSong} onDelete={deleteSong} key={song.id} />
                 ))}
             </div>
             <h2>Создать песню</h2>

@@ -39,7 +39,7 @@ function Register() {
             <input
                 className="form-input"
                 type="Почта"
-                value={username}
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Почта"
             />
@@ -52,6 +52,10 @@ function Register() {
             />
             <button className="form-button" type="submit">
                 {name}
+            </button>
+            Есть аккаунт?
+            <button className="register-button" type="button" onClick={() => navigate("/login")}>
+                Войти
             </button>
         </form>
     );
