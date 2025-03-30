@@ -2,10 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("songs/", views.SongListCreate.as_view(), name="song-list"),
+    path("songs/", views.SongListUserCreate.as_view(), name="song-list-by-user"),
+    path("songs/public/", views.SongListPublic.as_view(), name="song-list-public"),
+    path("songs/<int:pk>/", views.SongRetrieve.as_view(), name="song-detail"),
     path("songs/delete/<int:pk>/", views.SongDelete.as_view(), name="delete-song"),
-    path("songLyrics/", views.SongLyricsListCreate.as_view(), name="lyrics-list"),
-    path("songLyrics/<int:song_id>/", views.SongLyricsListCreate.as_view(), name="lyrics-list-by-song"),
-    path("songLyrics/detail/<int:pk>/", views.SongLyricsRUD.as_view(), name="lyrics-detail"),
-    path("songLyrics/delete-all/<int:song_id>/", views.SongLyricsDeleteAll.as_view(), name="delete-all-lyrics"),
+
+    path("songLyrics/<int:song_id>/", views.SongLyricsList.as_view(), name="lyrics-list-by-song"),
+    path("songLyrics/public/<int:song_id>/", views.SongLyricsPublicList.as_view(), name="lyrics-list-by-song-public"),
+    path('songLyrics/update/<int:song_id>/', views.SongLyricsUpdate.as_view(), name='update-lyrics'),
 ]

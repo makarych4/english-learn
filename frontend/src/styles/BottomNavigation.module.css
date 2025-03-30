@@ -1,0 +1,82 @@
+/* styles/BottomNavigation.module.css */
+body {
+  padding-bottom: 50px;
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: #2C2C2C;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 20px;
+  border-top: 1px solid #404040;
+}
+
+.iconContainer {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  
+}
+
+.iconContainer a {
+  display: flex;
+  flex-direction: column; /* Вертикальное выравнивание */
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  transition: all 0.2s;
+  gap: 4px; /* Расстояние между иконкой и текстом */
+  text-decoration: none;
+}
+
+.iconContainer span {
+  font-size: 12px;
+  color: #888; /* Серый цвет для неактивных */
+  transition: color 0.2s;
+}
+
+
+
+/* Default icon color */
+.iconContainer img {
+  width: 20px;
+  height: 20px;
+  filter: invert(60%); /* Серый цвет */
+  transition: filter 0.2s;
+}
+
+/* Active icon color */
+.iconContainer .active img {
+  filter: invert(100%); /* Белый цвет */
+}
+
+/* Активное состояние для текста */
+.iconContainer .active span {
+  color: #fff; /* Белый цвет для активных */
+}
+
+/* Hover effect */
+.iconContainer a:active {
+  opacity: 0.7;
+}
+
+@media (min-width: 768px) {
+  .bottomNav {
+    display: none;
+  }
+
+  body {
+    padding-bottom: 0;
+  }
+}

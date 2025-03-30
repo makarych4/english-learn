@@ -1,0 +1,80 @@
+/* Основной контейнер строки текста */
+.song-lyrics-line {
+  margin-bottom: 1.5rem;       /* Отступ снизу 24px */
+  padding: 1rem;               /* Внутренние отступы 16px */
+  background: #f8f9fa;         /* Светло-серый фон */
+  border-radius: 8px;          /* Скругление углов */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Легкая тень */
+}
+
+/* Номер строки */
+.number-line {
+  margin: 12px 0 12px 0;      /* Отступ снизу 12px */
+  font-size: 0.875rem;        /* Размер шрифта 14px */
+  color: #6c757d;             /* Серый цвет текста */
+  font-weight: 500;           /* Средняя жирность */
+}
+
+/* Поле ввода оригинального текста */
+.original-line {
+  width: 100%;                /* Ширина на весь контейнер */
+  padding: 0.75rem;           /* Внутренние отступы 12px */
+  margin-bottom: 0.5rem;      /* Отступ снизу 8px */
+  border: 2px solid #dee2e6;  /* Серая граница */
+  border-radius: 6px;         /* Скругление углов */
+  font-size: 1rem;            /* Размер шрифта 16px */
+}
+
+/* Поле ввода перевода */
+.translation-line {
+  width: 100%;                /* Ширина на весь контейнер */
+  padding: 0.75rem;           /* Внутренние отступы 12px */
+  margin-bottom: 1rem;        /* Отступ снизу 16px */
+  border: 2px solid #dee2e6;  /* Серая граница */
+  border-radius: 6px;         /* Скругление углов */
+  font-size: 1rem;            /* Размер шрифта 16px */
+}
+
+/* Общие стили для плейсхолдеров */
+.original-line::placeholder,
+.translation-line::placeholder {
+  color: #adb5bd;             /* Серый цвет плейсхолдера */
+  opacity: 1;                 /* Полная видимость */
+}
+
+/* Контейнер для кнопок */
+.button-group {
+  display: flex;              /* Flex-раскладка */
+  gap: 0.5rem;                /* Расстояние между кнопками 8px */
+}
+
+/* Общие стили кнопок */
+.add-button,
+.delete-button {
+  flex: 1;                    /* Равномерное распределение */
+  padding: 0.75rem 1rem;      /* Внутренние отступы 12x16px */
+  border: none;               /* Без границ */
+  border-radius: 6px;         /* Скругление углов */
+  font-size: 0.875rem;        /* Размер шрифта 14px */
+  font-weight: 500;           /* Средняя жирность */
+  cursor: pointer;            /* Курсор-указатель */
+  transition: all 0.2s ease;  /* Плавные анимации */
+}
+
+/* Стили кнопки добавления */
+.add-button {
+  background-color: #0984e3;
+  color: #ffffff;             /* Белый текст */
+}
+
+/* Стили кнопки удаления */
+.delete-button {
+  background-color: #0984e3;  /* Красный цвет фона */
+  color: #ffffff;             /* Белый текст */
+}
+
+/* Эффекты при наведении */
+.add-button:hover,
+.delete-button:hover {
+  background: #0873c4;
+}

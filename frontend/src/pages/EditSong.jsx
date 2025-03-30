@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
-import SongLyricsLine from "../components/SongLyricsLine";
+import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants";
+import EditSongLyricsLine from "../components/EditSongLyricsLine";
+//import "../styles/EditSong.css"
 
 function EditSong() {
-    const { songId } = useParams();
     const [lyrics, setLyrics] = useState([]);
+    const { songId } = useParams();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -15,12 +17,12 @@ function EditSong() {
     const getLyrics = () => {
         api
             .get(`/api/songLyrics/${songId}/`)
-            .then((res) => {
-                setLyrics(res.data);
+            .then((res) => res.data)
+            .then((data) => {
+                setLyrics(data);
+                console.log(data);
             })
-            .catch((err) => {
-                alert(err);
-            });
+            .catch((err) => alert(err));
     };
 
     const handleAddLine = (index) => {
@@ -31,9 +33,10 @@ function EditSong() {
             song: songId,
         };
         const updatedLyrics = [...lyrics];
+        // Вставка новой строки в массив
         updatedLyrics.splice(index, 0, newLine);
     
-        // ПЕРЕСЧЕТ line_number
+        // Пересчет в порядок 1, 2 , …, n
         updatedLyrics.forEach((line, idx) => {
             line.line_number = idx + 1;
         });
@@ -52,7 +55,7 @@ function EditSong() {
         const updatedLyrics = [...lyrics];
         updatedLyrics.splice(index, 1);
 
-        // ПЕРЕСЧЕТ line_number
+        // Пересчет в порядок 1, 2 , …, n
         updatedLyrics.forEach((line, idx) => {
             line.line_number = idx + 1;
         });
@@ -60,42 +63,53 @@ function EditSong() {
         setLyrics(updatedLyrics);
     };
 
-
-    const handleSave = () => {
-        // Удаляем все существующие строки
-        api.delete(`/api/songLyrics/delete-all/${songId}/`)
-            .then(() => {
-                // Создаем новые строки
-                const savePromises = lyrics.map((line) => {
-                    return api.post("/api/songLyrics/", line);
-                });
-    
-                Promise.all(savePromises)
-                    .then(() => {
-                        alert("Изменения сохранены!");
-                        navigate("/");
-                    })
-                    .catch((err) => alert(err));
-            })
-            .catch((err) => alert(err));
+    const refreshToken = async () => {
+        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+        try {
+            const res = await api.post("/api/token/refresh/", {
+                refresh: refreshToken,
+            });
+            if (res.status === 200) {
+                localStorage.setItem(ACCESS_TOKEN, res.data.access)
+            } else {
+            }
+        } catch (error) {
+            console.log(error);
+        }
     };
 
+    const handleSave = async () => {
+        await refreshToken();
+
+        try {
+          await api.post(`/api/songLyrics/update/${songId}/`, lyrics);
+          alert("Изменения сохранены!");
+          navigate("/");
+        } catch (err) {
+          alert("Ошибка. Данные не изменены.");
+        }
+      };
+
     return (
-        <div>
+        <>
             <h2>Редактирование текста песни</h2>
-            <button onClick={() => handleAddLine(0)}>Добавить строку сверху</button>
+            <button className="add-button" onClick={() => handleAddLine(0)}>
+                Добавить строку
+            </button>
             {lyrics.map((line, index) => (
-                <SongLyricsLine
-                    key={index}
+                <EditSongLyricsLine
                     line={line}
-                    index={index}
                     onChange={handleChangeLine}
                     onAddLine={handleAddLine}
                     onDeleteLine={handleDeleteLine}
+                    index={index}
+                    key={index}    
                 />
             ))}
-            <button onClick={handleSave}>Сохранить</button>
-        </div>
+            <button className="save-button" onClick={handleSave}>
+                Сохранить
+            </button>
+        </>
     );
 }
 

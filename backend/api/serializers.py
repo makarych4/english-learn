@@ -1,6 +1,14 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import Song, SongLyrics
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token["user_id"] = user.id
+        return token
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,7 +42,7 @@ class SongLyricsSerializer(serializers.ModelSerializer):
         model = SongLyrics
         fields = ["id", "original_line", "translated_line", "line_number", "song"]
         extra_kwargs = {
-            "song": {"read_only": True},
             "original_line": {"allow_blank": True},
             "translated_line": {"allow_blank": True},
         }
+

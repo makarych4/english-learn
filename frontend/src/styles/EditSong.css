@@ -1,0 +1,42 @@
+/* Основной контейнер страницы редактирования */
+.edit-song-container {
+    padding: 1rem; /* 16px отступ со всех сторон */
+    max-width: 600px; /* Максимальная ширина контента */
+    margin: 0 auto; /* Центрирование на широких экранах */
+  }
+  
+  /* Заголовок страницы */
+  .edit-song-container h2 {
+    font-size: 1.5rem; /* 24px */
+    color: #2d3436; /* Темно-серый цвет */
+    margin-bottom: 1.5rem; /* 24px снизу */
+    text-align: center; /* Центрирование текста */
+  }
+  
+  /* Эффекты при наведении на кнопку */
+  .add-button:hover {
+    background: #0873c4;
+  }
+
+  /* Контейнер для списка строк */
+  .lyrics-list {
+    display: flex; /* Flex-раскладка */
+    flex-direction: column; /* Вертикальное расположение */
+    gap: 1rem; /* 16px между элементами */
+    margin-bottom: 2rem; /* 32px снизу */
+  }
+  
+  /* Кнопка сохранения */
+  .save-button {
+    margin: 12px 0 0 0;
+    flex: 1;                    /* Равномерное распределение */
+    padding: 0.75rem 1rem;      /* Внутренние отступы 12x16px */
+    border: none;               /* Без границ */
+    border-radius: 6px;         /* Скругление углов */
+    font-size: 0.875rem;        /* Размер шрифта 14px */
+    font-weight: 500;           /* Средняя жирность */
+    cursor: pointer;            /* Курсор-указатель */
+    transition: all 0.2s ease;  /* Плавные анимации */   
+    background-color: green;  /* Зеленый цвет фона */
+    color: #ffffff;         /* Белый текст */
+  }

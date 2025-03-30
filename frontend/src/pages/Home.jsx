@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import Song from "../components/Song"
+import BottomNavigation from '../components/BottomNavigation';
 //import "../styles/Home.css"
 
 function Home() {
@@ -54,21 +55,26 @@ function Home() {
     };
 
     return (
-        <div>
-            <button className="logout-button" type="button" onClick={() => navigate("/logout")}>
-                Выйти
-            </button>
-            <div>
+        <>
+            <div className="songs-block">
                 <h2>Песни</h2>
                 {songs.map((song) => (
-                    <Song song={song} onEdit={editSong} onDelete={deleteSong} key={song.id} />
+                    <Song
+                        song={song}
+                        onEdit={editSong}
+                        onDelete={deleteSong}
+                        key={song.id}
+                    />
                 ))}
             </div>
-            <h2>Создать песню</h2>
-            <form onSubmit={createSong}>
-                <label htmlFor="title">Название:</label>
+            <h3>Создать песню</h3>
+            <form onSubmit={createSong} className="form-container">
+                <label htmlFor="title" className="form-label">
+                    Название:
+                </label>
                 <br />
                 <input
+                    className="form-input"
                     type="text"
                     id="title"
                     name="title"
@@ -76,9 +82,13 @@ function Home() {
                     onChange={(e) => setTitle(e.target.value)}
                     value={title}
                 />
-                <label htmlFor="artist">Исполнитель:</label>
+                <br />
+                <label htmlFor="artist" className="form-label">
+                    Исполнитель:
+                </label>
                 <br />
                 <input
+                    className="form-input"
                     id="artist"
                     name="artist"
                     required
@@ -86,9 +96,17 @@ function Home() {
                     value={artist}
                 />
                 <br />
-                <input type="submit" value="Submit"></input>
+                <input
+                    className="form-submit"
+                    type="submit"
+                    value="Создать"
+                />
             </form>
-        </div>
+            <div className="mobile-only">
+                <BottomNavigation active="home" />
+            </div>
+            
+        </>
     );
 }
 

@@ -6,6 +6,11 @@ import Home from "./pages/Home"
 import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 import EditSong from "./pages/EditSong";
+import ProtectedSongRoute from "./components/ProtectedSongRoute"
+import Profile from "./pages/Profile"
+import Search from "./pages/Search"
+import SongLearn from "./pages/SongLearn"
+
 
 function Logout() {
   localStorage.clear()
@@ -36,9 +41,31 @@ function App() {
             path="/edit-song/:songId"
             element={
                 <ProtectedRoute>
-                    <EditSong />
+                  <ProtectedSongRoute>
+                      <EditSong />
+                  </ProtectedSongRoute>
                 </ProtectedRoute>
             }
+        />
+        <Route
+          path="/search"
+          element={     
+            <Search />
+          }
+        />
+        <Route
+          path="/song/:songId"
+          element={     
+            <SongLearn />
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
         />
         <Route path="*" element={<NotFound />}></Route>
       </Routes>
