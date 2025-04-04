@@ -9,6 +9,7 @@ function Home() {
     const [songs, setSongs] = useState([]);
     const [title, setTitle] = useState("");
     const [artist, setArtist] = useState("");
+    const [videoId, setVideoId] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -45,7 +46,7 @@ function Home() {
     const createSong = (e) => {
         e.preventDefault();
         api
-            .post("/api/songs/", { title, artist })
+            .post("/api/songs/", { title, artist, youtube_id: videoId })
             .then((res) => {
                 if (res.status === 201) alert("Песня создана!");
                 else alert("Не удалось создать песню");
@@ -94,6 +95,20 @@ function Home() {
                     required
                     onChange={(e) => setArtist(e.target.value)}
                     value={artist}
+                />
+                <br />
+                <label htmlFor="title" className="form-label">
+                    id видео с YouTube:
+                </label>
+                <br />
+                <input
+                    className="form-input"
+                    type="text"
+                    id="videoId"
+                    name="videoId"
+                    required
+                    onChange={(e) => setVideoId(e.target.value)}
+                    value={videoId}
                 />
                 <br />
                 <input

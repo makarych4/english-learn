@@ -1,0 +1,901 @@
+[
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "admin",
+    "model": "logentry"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "auth",
+    "model": "permission"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "auth",
+    "model": "group"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "auth",
+    "model": "user"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "contenttypes",
+    "model": "contenttype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "sessions",
+    "model": "session"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "api",
+    "model": "song"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "fields": {
+    "app_label": "api",
+    "model": "songlyrics"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "co0g6d44h4dcnj6csmd5t1uvvm1wed2m",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hCZIkWX7nsGMsMMUjWQlHZlvLuSdKF_-d_Le6mA25rD1mQJM6uLsurw-xHGh5QO-I7lVnWsZV1m0l3RO216qizP6-7-BTK23LMRTsYZgoQMLoF3lIxlC2QJjfgokMANbHAU8laOkQc5jymy5fSden8A9u85TQ:1tmxm2:eyLH1EvR6gYF_gprBJwvUUC2Qyb7VU2EZutGrivPvqU",
+    "expire_date": "2025-03-11T16:27:10.864Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "tx6er1ax8z0v7bxphwjzfnvfpros1tdm",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hCZIkWX7nsGMsMMUjWQlHZlvLuSdKF_-d_Le6mA25rD1mQJM6uLsurw-xHGh5QO-I7lVnWsZV1m0l3RO216qizP6-7-BTK23LMRTsYZgoQMLoF3lIxlC2QJjfgokMANbHAU8laOkQc5jymy5fSden8A9u85TQ:1tysvF:b5a3YPhBRDKVoUxhD4phxYMtICxEdBGH5lIfFmU39Qo",
+    "expire_date": "2025-04-13T13:41:57.351Z"
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 248,
+  "fields": {
+    "original_line": "Is this the real life?",
+    "translated_line": "▌Єю эрёЄю ∙р  цшчэ№?",
+    "line_number": 1,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 249,
+  "fields": {
+    "original_line": "Is this just fantasy?",
+    "translated_line": "▌Єю яЁюёЄю ЇрэЄрчш ?",
+    "line_number": 2,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 250,
+  "fields": {
+    "original_line": "Caught in a landslide",
+    "translated_line": "╧юяры яюф юяюычхэ№",
+    "line_number": 3,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 251,
+  "fields": {
+    "original_line": "no escape from reality",
+    "translated_line": "эх єщЄш юЄ Ёхры№эюёЄш",
+    "line_number": 4,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 252,
+  "fields": {
+    "original_line": "Open your eyes",
+    "translated_line": "╬ЄъЁющ ётюш уырчр",
+    "line_number": 5,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 253,
+  "fields": {
+    "original_line": "look up to the skies and see",
+    "translated_line": "яюёьюЄЁш ттхЁї эр эхсхёр ш єтшф№",
+    "line_number": 6,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 254,
+  "fields": {
+    "original_line": "I'm just a poor boy",
+    "translated_line": "▀ яЁюёЄю схфэ√щ ьры№ўшъ",
+    "line_number": 7,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 255,
+  "fields": {
+    "original_line": "I need no sympathy",
+    "translated_line": "ьэх эх эєцэю ёюёЄЁрфрэшх",
+    "line_number": 8,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 256,
+  "fields": {
+    "original_line": "Because I'm easy come, easy go",
+    "translated_line": "╧юЄюьє ўЄю   ыхуъю яЁшїюцє, ыхуъю єїюцє",
+    "line_number": 9,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 257,
+  "fields": {
+    "original_line": "Little high, little low",
+    "translated_line": "═хьэюую т√ёюъю, эхьэюую эшчъю",
+    "line_number": 10,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 258,
+  "fields": {
+    "original_line": "Any way the wind blows",
+    "translated_line": "ъєфр с√ эш фєы тхЄхЁ",
+    "line_number": 11,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 259,
+  "fields": {
+    "original_line": "doesn't really matter to me, to me",
+    "translated_line": "эх юёюсю трцэю фы  ьхэ , фы  ьхэ ",
+    "line_number": 12,
+    "song": 32
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 262,
+  "fields": {
+    "original_line": "T",
+    "translated_line": "Vv",
+    "line_number": 1,
+    "song": 34
+  }
+},
+{
+  "model": "api.songlyrics",
+  "pk": 263,
+  "fields": {
+    "original_line": "Gg",
+    "translated_line": "F",
+    "line_number": 2,
+    "song": 34
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": [
+      "admin",
+      "logentry"
+    ],
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view permission",
+    "content_type": [
+      "auth",
+      "permission"
+    ],
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view group",
+    "content_type": [
+      "auth",
+      "group"
+    ],
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add user",
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "codename": "add_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change user",
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "codename": "change_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete user",
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "codename": "delete_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view user",
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "codename": "view_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view content type",
+    "content_type": [
+      "contenttypes",
+      "contenttype"
+    ],
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view session",
+    "content_type": [
+      "sessions",
+      "session"
+    ],
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add song",
+    "content_type": [
+      "api",
+      "song"
+    ],
+    "codename": "add_song"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change song",
+    "content_type": [
+      "api",
+      "song"
+    ],
+    "codename": "change_song"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete song",
+    "content_type": [
+      "api",
+      "song"
+    ],
+    "codename": "delete_song"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view song",
+    "content_type": [
+      "api",
+      "song"
+    ],
+    "codename": "view_song"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can add song lyrics",
+    "content_type": [
+      "api",
+      "songlyrics"
+    ],
+    "codename": "add_songlyrics"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can change song lyrics",
+    "content_type": [
+      "api",
+      "songlyrics"
+    ],
+    "codename": "change_songlyrics"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can delete song lyrics",
+    "content_type": [
+      "api",
+      "songlyrics"
+    ],
+    "codename": "delete_songlyrics"
+  }
+},
+{
+  "model": "auth.permission",
+  "fields": {
+    "name": "Can view song lyrics",
+    "content_type": [
+      "api",
+      "songlyrics"
+    ],
+    "codename": "view_songlyrics"
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$HyIBRaqubdBs6FP6YaF8sy$a28Bfu4W620tYe/06e3lXOMUuP/nqZ3r2wgo9j8nJLk=",
+    "last_login": "2025-03-30T13:41:57.256Z",
+    "is_superuser": true,
+    "username": "ivan",
+    "first_name": "",
+    "last_name": "",
+    "email": "prostonik21151@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2025-02-25T16:26:36.658Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$nsFiNZBULxe2TmrjC9uR1g$FfeOHY/Hhl8bcdKDdKlv3rUCPK9rTJs90Ku5IHfEl3M=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "a",
+    "first_name": "",
+    "last_name": "",
+    "email": "a@a.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-02-25T16:30:06.583Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$L6G2jpdzu8EtUgaB0ZGrmB$ZDoVYO6fZg7fwrrapOh9vth7KGQ7F8yCo5Tw0CKRrVE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "ррр",
+    "first_name": "",
+    "last_name": "",
+    "email": "c@xn--s1aa.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-17T03:44:48.375Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$TQCQ5gQmG4SYrdXRteifGB$ZOeajyX7vZh2dp1X0LSsTvoNxEsoAxTUNnPJtmCnnnU=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "Ulquiorra",
+    "first_name": "",
+    "last_name": "",
+    "email": "stud0000275552@study.utmn.ru",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-17T07:28:36.794Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$5beInRMm6BtCSa2HREzyee$xwMBesEHhtV2QhQLFDtoFPG6eN1y8u2NXALr8ulbxWo=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "rybyakov_andrey",
+    "first_name": "",
+    "last_name": "",
+    "email": "pivo@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2025-03-17T09:03:07.226Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "api.song",
+  "pk": 24,
+  "fields": {
+    "title": "Italic-Song",
+    "artist": "Me",
+    "user": [
+      "rybyakov_andrey"
+    ],
+    "youtube_id": null,
+    "search_text": null
+  }
+},
+{
+  "model": "api.song",
+  "pk": 32,
+  "fields": {
+    "title": "Bohemian Rhapsody",
+    "artist": "Queen",
+    "user": [
+      "ivan"
+    ],
+    "youtube_id": null,
+    "search_text": null
+  }
+},
+{
+  "model": "api.song",
+  "pk": 33,
+  "fields": {
+    "title": "The Kill",
+    "artist": "Thirty Seconds to Mars",
+    "user": [
+      "ivan"
+    ],
+    "youtube_id": null,
+    "search_text": null
+  }
+},
+{
+  "model": "api.song",
+  "pk": 34,
+  "fields": {
+    "title": "a",
+    "artist": "a",
+    "user": [
+      "a"
+    ],
+    "youtube_id": null,
+    "search_text": null
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 1,
+  "fields": {
+    "action_time": "2025-02-25T16:28:23.102Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "1",
+    "object_repr": "",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 2,
+  "fields": {
+    "action_time": "2025-02-25T16:28:23.103Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "2",
+    "object_repr": "b",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 3,
+  "fields": {
+    "action_time": "2025-02-25T16:28:23.103Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "3",
+    "object_repr": "c",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 4,
+  "fields": {
+    "action_time": "2025-03-02T10:12:45.024Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "6",
+    "object_repr": "b",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 5,
+  "fields": {
+    "action_time": "2025-03-30T13:43:03.003Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "7",
+    "object_repr": "b",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 6,
+  "fields": {
+    "action_time": "2025-03-30T13:43:03.004Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "8",
+    "object_repr": "c",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 7,
+  "fields": {
+    "action_time": "2025-03-30T13:43:03.004Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "10",
+    "object_repr": "g",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 8,
+  "fields": {
+    "action_time": "2025-03-30T13:43:03.004Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "12",
+    "object_repr": "k",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 9,
+  "fields": {
+    "action_time": "2025-03-30T13:43:03.004Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "9",
+    "object_repr": "n",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 10,
+  "fields": {
+    "action_time": "2025-03-30T13:43:03.004Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "13",
+    "object_repr": "r",
+    "action_flag": 3,
+    "change_message": ""
+  }
+},
+{
+  "model": "admin.logentry",
+  "pk": 11,
+  "fields": {
+    "action_time": "2025-03-30T13:43:03.004Z",
+    "user": [
+      "ivan"
+    ],
+    "content_type": [
+      "auth",
+      "user"
+    ],
+    "object_id": "11",
+    "object_repr": "w",
+    "action_flag": 3,
+    "change_message": ""
+  }
+}
+]

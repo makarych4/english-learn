@@ -1,0 +1,39 @@
+/* Pagination.module.css */
+.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 1rem 0;
+    gap: 0.5rem;
+  }
+  
+  .pageItem {
+    display: flex;
+  }
+  
+  .pageLink {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .pageLink:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .active .pageLink {
+    background-color: #2196F3;
+    color: white;
+    border-color: #2196F3;
+  }
+  
+  .disabled .pageLink {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .breakLink {
+    padding: 0.5rem 1rem;
+  }

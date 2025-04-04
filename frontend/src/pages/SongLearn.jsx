@@ -8,10 +8,12 @@ import styles from '../styles/SongLearn.module.css';
 
 function SongLearn() {
     const [lyrics, setLyrics] = useState([]);
+    const [songData, setSongData] = useState("")
     const { songId } = useParams();
 
     useEffect(() => {
         getLyrics();
+        getSongData();
     }, [songId]);
 
     const getLyrics = () => {
@@ -21,6 +23,15 @@ function SongLearn() {
             .then((data) => {
                 setLyrics(data);
                 console.log(data);
+            })
+            .catch((err) => alert(err));
+    };
+
+    const getSongData = () => {
+        api
+            .get(`/api/songs/public/${songId}/`)
+            .then((res) => {
+                setSongData(res.data);
             })
             .catch((err) => alert(err));
     };
@@ -40,7 +51,7 @@ function SongLearn() {
                     
                 ))}
             </div>
-            <YouTubePlayer videoId="2g811Eo7K8U" />
+            <YouTubePlayer videoId={songData.youtube_id} />
             <BottomNavigation active="search" />
             
         </>

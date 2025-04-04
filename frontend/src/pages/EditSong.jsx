@@ -7,6 +7,7 @@ import EditSongLyricsLine from "../components/EditSongLyricsLine";
 
 function EditSong() {
     const [lyrics, setLyrics] = useState([]);
+    const [rawText, setRawText] = useState("");
     const { songId } = useParams();
     const navigate = useNavigate();
 
@@ -23,6 +24,25 @@ function EditSong() {
                 console.log(data);
             })
             .catch((err) => alert(err));
+    };
+
+    const handleParseText = async () => {
+        await refreshToken();
+        
+        try {
+            const response = await api.post(
+                `/api/songLyrics/${songId}/parse-lyrics/`, 
+                { raw_text: rawText }
+            );
+            
+            if (response.status === 200) {
+                alert("Текст успешно обработан!");
+                getLyrics(); // Обновляем список строк
+                setRawText(""); // Очищаем поле ввода
+            }
+        } catch (err) {
+            alert("Ошибка обработки текста: " + (err.response?.data?.detail || err.message));
+        }
     };
 
     const handleAddLine = (index) => {
@@ -92,6 +112,22 @@ function EditSong() {
 
     return (
         <>
+            <div className="text-upload-section">
+                <h3>Импорт текста</h3>
+                <textarea
+                    value={rawText}
+                    onChange={(e) => setRawText(e.target.value)}
+                    placeholder="Вставьте текст песни здесь..."
+                    rows={10}
+                    style={{ width: '100%' }}
+                />
+                <button 
+                    onClick={handleParseText}
+                    className="parse-button"
+                >
+                    Обработать и сохранить текст
+                </button>
+            </div>
             <h2>Редактирование текста песни</h2>
             <button className="add-button" onClick={() => handleAddLine(0)}>
                 Добавить строку

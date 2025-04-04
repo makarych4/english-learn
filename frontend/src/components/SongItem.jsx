@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import styles from "../styles/SongItem.module.css";
 
 function SongItem({ song }) {
     const navigate = useNavigate();
@@ -8,9 +9,9 @@ function SongItem({ song }) {
     };
 
     return (
-        <div onClick={handleClick} className="song-item">
-            <p className="song-title">{song.title}</p>
-            <p className="song-artist">{song.artist}</p>
+        <div onClick={handleClick} className={styles.songItem}>
+            <p className={styles.songTitle}>{song.title}</p>
+            <p className={styles.songArtist}>{song.artist}</p>
         </div>
     );
 }
