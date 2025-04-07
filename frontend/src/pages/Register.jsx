@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import BottomNavigation from '../components/BottomNavigation';
-import "../styles/Form.css"
+//import "../styles/Form.css"
 
 function Register() {
     const [username, setUsername] = useState("");

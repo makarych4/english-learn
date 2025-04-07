@@ -38,9 +38,9 @@ class SongSerializer(serializers.ModelSerializer):
             "youtube_id": {"allow_blank": True},
         }
 
-class ArtistGroupedSerializer(serializers.Serializer):
+class ArtistGroupSerializer(serializers.Serializer):
     artist = serializers.CharField()
-    song_count = serializers.IntegerField()
+    count = serializers.IntegerField()
         
 class SongLyricsSerializer(serializers.ModelSerializer):
     class Meta:

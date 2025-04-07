@@ -2,17 +2,17 @@ import React from 'react';
 import ReactPaginate from 'react-paginate';
 import styles from '../styles/Pagination.module.css';
 
-const CustomPagination = ({ pageCount, onPageChange, currentPage }) => {
+const Pagination = ({ pageCount, onPageChange, currentPage }) => {
   return (
     <ReactPaginate
       previousLabel={'<'}
       nextLabel={'>'}
       breakLabel={'...'}
       pageCount={pageCount}
-      marginPagesDisplayed={2}
-      pageRangeDisplayed={3}
+      marginPagesDisplayed={1} // Всегда показываем первую и последнюю страницы
+      pageRangeDisplayed={1} // Вокруг текущей страницы показываем по 1 элементу с каждой стороны
       onPageChange={onPageChange}
-      forcePage={currentPage - 1} // Добавляем текущую страницу
+      forcePage={currentPage - 1}
       containerClassName={styles.pagination}
       pageClassName={styles.pageItem}
       pageLinkClassName={styles.pageLink}
@@ -28,4 +28,4 @@ const CustomPagination = ({ pageCount, onPageChange, currentPage }) => {
   );
 };
 
-export default CustomPagination;
+export default Pagination;
