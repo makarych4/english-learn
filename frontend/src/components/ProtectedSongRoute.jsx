@@ -4,6 +4,9 @@ import api from "../api";
 import { ACCESS_TOKEN } from "../constants";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import LoadingIndicator from "./LoadingIndicator";
+import BottomNavigation from './BottomNavigation';
+import styles from "../styles/ProtectedSongRoute.module.css";
 
 function ProtectedSongRoute({ children }) {
     const { songId } = useParams();
@@ -65,7 +68,12 @@ function ProtectedSongRoute({ children }) {
     };
 
     if (isLoading) {
-        return <div>Loading...</div>;
+        return (
+            <div className={styles.pageContainer}>
+                <LoadingIndicator />
+                <BottomNavigation active="home" />
+            </div>
+        ) 
     }
 
     return isOwner ? children : <Navigate to="/" />;

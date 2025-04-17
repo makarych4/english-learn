@@ -1,8 +1,33 @@
 .songItem {
+    background: #f0f0f0;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+  }
+  
+  .songItem:hover {
+    background-color: #ddd;
+  }
+  
+  .songTitle {
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 0 0 4px;
+    color: #111;
+  }
+  
+  .songArtist {
+    font-size: 0.9rem;
+    color: #555;
+    margin: 0;
+  }
+  
+
+
+/* .songItem {
     display: flex;
     flex-direction: column;
     padding: 10px;
-    margin: 4px;
     border-radius: 8px;
     background-color: #ececec;
     cursor: pointer;
@@ -27,4 +52,4 @@
     margin-top: -5px;
     margin-bottom: 0px;
 }
-
+ */

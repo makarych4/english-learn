@@ -1,0 +1,52 @@
+.pageContainer {
+  padding: 16px;
+  font-family: sans-serif;
+  position: relative;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.formContainer h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.formInput, .formButton {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+
+.formInput{
+  border: 1px solid #ccc;
+  margin-bottom: 1rem;
+}
+
+.formButton {
+  background-color: #2d89ff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.formSwitchBlock {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.switchButton {
+  margin-top: 0.5rem;
+  color: #2d89ff;
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}

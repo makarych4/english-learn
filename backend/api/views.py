@@ -9,16 +9,13 @@ from rest_framework.exceptions import PermissionDenied
 from django.db import transaction
 # Поиск
 import re
-from .pagination import SongPagination
-from django.contrib.postgres.search import TrigramSimilarity, TrigramWordSimilarity
-from django.db.models import F, Q, Value, FloatField, Count, Case, When, ExpressionWrapper, OuterRef, Subquery, CharField, Func
-from django.db.models.functions import Greatest, Lower
-from functools import reduce
-from operator import add
+from collections import Counter
+from .pagination import SongPagination, WordFrequencyPagination
+from django.contrib.postgres.search import TrigramWordSimilarity
+from django.db.models import F, Q, Count, OuterRef, Subquery, CharField
+from django.db.models.functions import Lower
 
-
-from django.contrib.postgres.search import SearchQuery, SearchVector, SearchRank
-
+"""Создание песни и вывод песен пользователя"""
 class SongListUserCreate(generics.ListCreateAPIView):
     serializer_class = SongSerializer
     permission_classes = [IsAuthenticated]
@@ -26,7 +23,16 @@ class SongListUserCreate(generics.ListCreateAPIView):
     # Песни созданные пользователем
     def get_queryset(self):
         user = self.request.user
-        return Song.objects.filter(user=user).order_by('id')
+        is_published = self.request.query_params.get("published", "") == "true"
+
+        queryset = Song.objects.filter(user=user)
+
+        if is_published:
+            queryset = queryset.filter(is_published=True)
+        else:
+            queryset = queryset.filter(is_published=False)
+
+        return queryset.order_by("id")
     
     # Создание песни
     def perform_create(self, serializer):
@@ -35,6 +41,7 @@ class SongListUserCreate(generics.ListCreateAPIView):
         else:
             print(serializer.errors)
 
+"""Получение списка песен для общего просмотра"""
 class SongListPublic(generics.ListAPIView):
     permission_classes = [AllowAny]
     pagination_class = SongPagination
@@ -56,11 +63,6 @@ class SongListPublic(generics.ListAPIView):
         - base: базовый порог для пустого запроса
         - step: шаг увеличения порога на каждый символ
         - max_threshold: максимально допустимый порог
-        
-        Логика:
-        - Короткие запросы (пример: "over") имеют более низкий порог для большего количества результатов
-        - Длинные запросы (пример: "over and over again") требуют более точного совпадения
-        - Защита от слишком низких/высоких значений через max_threshold
         """
         return min(base + len(query) * step, max_threshold)
 
@@ -71,38 +73,31 @@ class SongListPublic(generics.ListAPIView):
         artist_group = self.request.query_params.get("artist_group", "") == "true"
         selected_artist = self.request.query_params.get("selected_artist", "").strip().lower()
 
-        if not query:
-            return Song.objects.none()
+        if search_type == "all_songs_search":
+            queryset = Song.objects.filter(is_published=True).all().order_by('artist', 'title')
 
-        if search_type == "lyrics_text_search":
-            """
-            Логика поиска по тексту песен с использованием триграммного сравнения слов.
-            Основные принципы:
-            1. Учитываем порядок слов в запросе
-            2. Допускаем небольшие опечатки
-            3. Приоритет у точных совпадений фразы
-            4. Учитываем частичные совпадения отдельных слов
-            """
+        elif search_type == "reduce_songs_search":
+            """поиск по тексту песен с использованием триграммного сравнения слов"""
             # Динамически рассчитываем порог схожести (чем длиннее запрос, тем выше порог)
             trigram_threshold = self.get_similarity_threshold(
                 query, 
-                base=0.4,  # Базовый порог для коротких запросов
-                step=0.01, # Шаг увеличения на каждый символ
-                max_threshold=0.5 # Максимальный порог
+                base=0,
+                step=0.05,
+                max_threshold=0.45
             )
             
             # Основной запрос к базе данных
             queryset = (
-                Song.objects
+                Song.objects.filter(is_published=True)
                 # Аннотируем схожесть полной фразы запроса с текстом песни
                 .annotate(
-                    phrase_similarity=TrigramWordSimilarity(query, 'lyrics_text')
+                    phrase_similarity=TrigramWordSimilarity(query, 'search_text')
                 )
                 # Аннотируем схожесть первых трех слов запроса (для частичных совпадений)
                 .annotate(
                     words_similarity=TrigramWordSimilarity(
-                        ' '.join(query.split()[:3]), # Берем первые 3 слова запроса
-                        'lyrics_text'
+                        ' '.join(query.split()), # Берем первые 3 слова запроса query.split()[:3]
+                        'search_text'
                     )
                 )
                 # Фильтруем результаты по порогу схожести
@@ -118,18 +113,9 @@ class SongListPublic(generics.ListAPIView):
                 .order_by(
                     '-total_similarity',  # Основная сортировка по комбинированной метрике
                     '-phrase_similarity'  # Дополнительная сортировка по точности фразы
+
                 )
             )
-        
-        elif search_type == "title_artist_search":
-            trigram_threshold = self.get_similarity_threshold(query, base=0.1)
-
-            queryset = (
-                Song.objects
-                .annotate(similarity=TrigramSimilarity('title_artist', query))
-                .filter(similarity__gt=trigram_threshold)
-                .order_by('-similarity')
-        )
             
         else:
             return Song.objects.none()
@@ -161,17 +147,19 @@ class SongListPublic(generics.ListAPIView):
             
         return queryset
     
-class BaseSongRetrieve(generics.RetrieveAPIView):
+class BaseSongRetrieve(generics.RetrieveUpdateAPIView):
     serializer_class = SongSerializer
-
     queryset = Song.objects.all()
     
+"""Получение данных песни для редактирования"""
 class SongRetrieve(BaseSongRetrieve):
     permission_classes = [IsAuthenticated]
 
+"""Получение данных песни для общего просмотра"""
 class SongRetrievePublic(BaseSongRetrieve):
     permission_classes = [AllowAny]
             
+"""Удаление песни"""
 class SongDelete(generics.DestroyAPIView):
     serializer_class = SongSerializer
     permission_classes = [IsAuthenticated]
@@ -180,6 +168,7 @@ class SongDelete(generics.DestroyAPIView):
         user = self.request.user
         return Song.objects.filter(user=user)            
 
+
 class BaseSongLyricsList(generics.ListAPIView):
     serializer_class = SongLyricsSerializer
 
@@ -187,12 +176,15 @@ class BaseSongLyricsList(generics.ListAPIView):
         song_id = self.kwargs.get('song_id')
         return SongLyrics.objects.filter(song_id=song_id).order_by('line_number')
     
+"""Получение текста песни для редактирования"""
 class SongLyricsList(BaseSongLyricsList):
     permission_classes = [IsAuthenticated]
 
+"""Получение текста песни для общего просмотра"""
 class SongLyricsPublicList(BaseSongLyricsList):
     permission_classes = [AllowAny]
 
+"""Обновление строк песни и search_text при изменении песни пользователем"""
 class SongLyricsUpdate(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -216,70 +208,79 @@ class SongLyricsUpdate(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             
-            # Обновление title_artist
+            # 3. Обновление search_text
             clean_title = re.sub(r"\s+", " ", song.title.strip()).lower()
             clean_artist = re.sub(r"\s+", " ", song.artist.strip()).lower()
 
-            song.title_artist = f"{clean_title} {clean_artist}"
-            song.save(update_fields=["title_artist"])
-
-            # Обновление lyrics_text
             original_lines = SongLyrics.objects.filter(song_id=song_id).order_by("line_number").values_list("original_line", flat=True)
 
-            # Очистка пробелов и объединение строк
+            # Очистка пробелов и объединение строк c и названием и исполнителем
             cleaned_lines = [re.sub(r"\s+", " ", line.strip()) for line in original_lines]
+            cleaned_lines = [clean_title, clean_artist] + cleaned_lines
             full_lyrics = " ".join(cleaned_lines).lower()
 
-            # Сохранение в поле lyrics_text
-            song.lyrics_text = full_lyrics
-            song.save(update_fields=["lyrics_text"])
+            # Сохранение в поле search_text
+            song.search_text = full_lyrics
+            song.save(update_fields=["search_text"])
+
+            # 4. Обновление поля words для статистики частоты встречаемости слов
+            self.update_words_field(song)
 
             return Response()
         
         except:
             return Response()
-        
-class ParseSongLyrics(APIView):
-    def post(self, request, song_id):
-        try:
-            song = Song.objects.get(id=song_id)
-            
-            # Удаляем существующие строки
-            SongLyrics.objects.filter(song=song).delete()
-            
-            # Парсим текст
-            raw_text = request.data.get('raw_text', '')
-            lines = self.parse_raw_text(raw_text)
-            
-            # Создаем новые записи
-            created_lines = []
-            for idx, line_text in enumerate(lines, start=1):
-                line = SongLyrics(
-                    song=song,
-                    original_line=line_text,
-                    line_number=idx
-                )
-                created_lines.append(line)
-            
-            SongLyrics.objects.bulk_create(created_lines)
-            
-            return Response()
-            
-        except Song.DoesNotExist:
-            return Response()
-        except:
-            return Response()
+    
+    def update_words_field(self, song):
+        # Разбиваем search_text по словам, приводим к нижнему регистру
+        words = re.findall(r"\b\w+\b", song.search_text.lower())
+        song.words = words
+        song.save(update_fields=["words"])
 
-    def parse_raw_text(self, text):
-        lines = []
-        for line in text.split('\n'):
-            line = line.strip()
-            # Пропускаем пустые строки и строки с тегами
-            if line and not line.startswith('['):
-                lines.append(line)
-        return lines
-
+"""Регистрация нового пользователя"""
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+
+"""Создание топа встречаемости всех слов"""
+class WordFrequencyTopAPIView(generics.ListAPIView):
+    permission_classes = [AllowAny]
+    pagination_class = WordFrequencyPagination
+
+    def get_queryset(self):
+        all_words = Song.objects.values_list("words", flat=True)
+        counter = Counter()
+        for word_list in all_words:
+            if word_list:
+                counter.update(word_list)
+        top_items = counter.most_common()
+        return [{"word": word, "frequency": count} for word, count in top_items]
+
+    def list(self):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        return self.get_paginated_response(page)
+
+
+"""Создание топа встречаемости введенных пользователем слов"""
+class WordFrequencyCustomAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        words = request.data.get("words", [])
+        if not isinstance(words, list):
+            return Response({"error": "Неверный формат слов"}, status=400)
+
+        queryset = Song.objects.values_list("words", flat=True)
+        counter = Counter()
+
+        for word_list in queryset:
+            if word_list:
+                counter.update(word_list)
+
+        result = [{"word": w, "frequency": counter.get(w, 0)} for w in words]
+        return Response(result)
+    
+
+    

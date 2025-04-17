@@ -1,9 +1,18 @@
-.container {
-    padding-bottom: 80px;
-  }
-
-@media (min-width: 768px) {
-    .container {
-        padding-bottom: 0px;
-    }
+.pageContainer {
+  padding: 16px;
+  font-family: sans-serif;
+  position: relative;
 }
+
+.container {
+    padding: 1rem;
+    background-color: #fafafa;
+    border-radius: 8px;
+    margin-bottom: 5rem;
+  }
+  
+  .container hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 1rem 0;
+  }

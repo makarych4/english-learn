@@ -8,3 +8,10 @@ pytz
 sqlparse
 psycopg2-binary
 python-dotenv
+
+# AI song creation dependencies:
+lyricsgenius
+ytmusicapi
+requests
+
+deep-translator

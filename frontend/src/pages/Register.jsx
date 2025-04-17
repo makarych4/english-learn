@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import BottomNavigation from '../components/BottomNavigation';
-//import "../styles/Form.css"
+import styles from "../styles/AuthForm.module.css";
 
 function Register() {
     const [username, setUsername] = useState("");
@@ -48,42 +48,42 @@ function Register() {
     };
 
     return (
-        <>
-            <form onSubmit={handleSubmit} className="form-container">
+        <div className={styles.pageContainer}>
+            <form onSubmit={handleSubmit} className={styles.formContainer}>
                 <h1>{name}</h1>
                 <input
-                    className="form-input"
+                    className={styles.formInput}
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Имя пользователя"
                 />
                 <input
-                    className="form-input"
+                    className={styles.formInput}
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Почта"
                 />
                 <input
-                    className="form-input"
+                    className={styles.formInput}
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Пароль"
                 />
-                <button className="form-button" type="submit">
+                <button className={styles.formButton} type="submit">
                     {name}
                 </button>
             </form>
-            <div className="form-switch-block">
+            <div className={styles.formSwitchBlock}>
                 <p>Есть аккаунт?</p>
-                <button className="register-button" type="button" onClick={() => navigate("/login")}>
+                <button className={styles.switchButton} type="button" onClick={() => navigate("/login")}>
                     Войти
                 </button>
             </div>
             <BottomNavigation active="profile" />
-        </>
+        </div>
     );
 }
 

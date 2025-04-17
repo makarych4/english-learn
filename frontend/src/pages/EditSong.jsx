@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
-import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants";
 import EditSongLyricsLine from "../components/EditSongLyricsLine";
-//import "../styles/EditSong.css"
+import BottomNavigation from '../components/BottomNavigation';
+import LoadingIndicator from "../components/LoadingIndicator";
+import ensureAuth from "../utils/authUtils";
+import styles from "../styles/EditSong.module.css"
 
 function EditSong() {
     const [lyrics, setLyrics] = useState([]);
-    const [rawText, setRawText] = useState("");
+    const [title, setTitle] = useState("");
+    const [artist, setArtist] = useState("");
+    const [youtubeId, setYoutubeId] = useState("");
+    const [confirmDeleteLineId, setConfirmDeleteLineId] = useState(null);
+    const [loading, setLoading] = useState(true);
     const { songId } = useParams();
     const navigate = useNavigate();
 
@@ -15,7 +21,12 @@ function EditSong() {
         getLyrics();
     }, [songId]);
 
-    const getLyrics = () => {
+    const getLyrics = async () => {
+        setLoading(true);
+
+        const isAuth = await ensureAuth(navigate);
+        if (!isAuth) return;
+        
         api
             .get(`/api/songLyrics/${songId}/`)
             .then((res) => res.data)
@@ -24,26 +35,18 @@ function EditSong() {
                 console.log(data);
             })
             .catch((err) => alert(err));
+
+        api
+            .get(`/api/songs/${songId}/`)
+            .then((res) => {
+                setTitle(res.data.title);
+                setArtist(res.data.artist);
+                setYoutubeId(res.data.youtube_id);
+            })
+            .catch((err) => alert(err))
+            .finally(() => setLoading(false));
     };
 
-    const handleParseText = async () => {
-        await refreshToken();
-        
-        try {
-            const response = await api.post(
-                `/api/songLyrics/${songId}/parse-lyrics/`, 
-                { raw_text: rawText }
-            );
-            
-            if (response.status === 200) {
-                alert("Текст успешно обработан!");
-                getLyrics(); // Обновляем список строк
-                setRawText(""); // Очищаем поле ввода
-            }
-        } catch (err) {
-            alert("Ошибка обработки текста: " + (err.response?.data?.detail || err.message));
-        }
-    };
 
     const handleAddLine = (index) => {
         const newLine = {
@@ -83,69 +86,185 @@ function EditSong() {
         setLyrics(updatedLyrics);
     };
 
-    const refreshToken = async () => {
-        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
+    const requestDeleteLine = (index) => {
+        setConfirmDeleteLineId(index);
+    };
+    
+    const confirmDeleteLine = () => {
+        handleDeleteLine(confirmDeleteLineId);
+        setConfirmDeleteLineId(null);
+    };
+    
+    const cancelDeleteLine = () => {
+        setConfirmDeleteLineId(null);
+    };
+
+
+    const handleSave = async () => {
+        setLoading(true);
+
+        const isAuth = await ensureAuth(navigate);
+        if (!isAuth) return;
+
         try {
-            const res = await api.post("/api/token/refresh/", {
-                refresh: refreshToken,
+            await api.patch(`/api/songs/${songId}/`, {
+                title,
+                artist,
+                youtube_id: youtubeId,
             });
-            if (res.status === 200) {
-                localStorage.setItem(ACCESS_TOKEN, res.data.access)
-            } else {
-            }
-        } catch (error) {
-            console.log(error);
+    
+            await api.post(`/api/songLyrics/update/${songId}/`, lyrics);
+
+            alert("Изменения сохранены!");
+            navigate("/");
+        } catch (err) {
+            alert("Ошибка. Данные не изменены.");
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleSave = async () => {
-        await refreshToken();
 
-        try {
-          await api.post(`/api/songLyrics/update/${songId}/`, lyrics);
-          alert("Изменения сохранены!");
-          navigate("/");
-        } catch (err) {
-          alert("Ошибка. Данные не изменены.");
+    
+
+    const handleFillLyrics = async () => {
+        setLoading(true);
+
+        const isAuth = await ensureAuth(navigate);
+        if (!isAuth) return;
+
+        if (!title || !artist) {
+            alert("Укажите название и исполнителя");
+            return;
         }
-      };
+        
+        try {
+            const res = await api.post(`/api/songs/create-with-genius/${songId}/`, { title, artist });
+            
+            if (res.data.song_id) {
+                setTitle(res.data.title);
+                setArtist(res.data.artist);
+                setYoutubeId(res.data.youtube_id);
+                getLyrics();
+            }
+        } catch (err) {
+            alert("Не удалось получить текст песни");
+            console.log(err);
+        }
+        finally {
+            setLoading(false);
+        }
+
+    };
+
+    const handleFillTranslations = async () => {
+        setLoading(true);
+
+        const isAuth = await ensureAuth(navigate);
+        if (!isAuth) return;
+    
+        try {
+            await api.post(`/api/songLyrics/update/${songId}/`, lyrics);
+
+            const res = await api.post(`/api/songs/translate/${songId}/`);
+
+            if (res.data.success) {
+                getLyrics();
+            }
+
+        } catch (err) {
+            alert("Не удалось перевести текст песни");
+            console.log(err);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+
 
     return (
-        <>
-            <div className="text-upload-section">
-                <h3>Импорт текста</h3>
-                <textarea
-                    value={rawText}
-                    onChange={(e) => setRawText(e.target.value)}
-                    placeholder="Вставьте текст песни здесь..."
-                    rows={10}
-                    style={{ width: '100%' }}
-                />
-                <button 
-                    onClick={handleParseText}
-                    className="parse-button"
-                >
-                    Обработать и сохранить текст
-                </button>
-            </div>
-            <h2>Редактирование текста песни</h2>
-            <button className="add-button" onClick={() => handleAddLine(0)}>
-                Добавить строку
-            </button>
-            {lyrics.map((line, index) => (
-                <EditSongLyricsLine
-                    line={line}
-                    onChange={handleChangeLine}
-                    onAddLine={handleAddLine}
-                    onDeleteLine={handleDeleteLine}
-                    index={index}
-                    key={index}    
-                />
-            ))}
-            <button className="save-button" onClick={handleSave}>
-                Сохранить
-            </button>
-        </>
+
+        <div className={styles.pageContainer}>
+
+            {loading ? (
+                <LoadingIndicator />
+            ) : (
+                <>
+                    <div className={styles.metaFields}>
+                        <label className={styles.metaLabel}>
+                            Название:
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                className={styles.metaInput}
+                            />
+                        </label>
+                        <label className={styles.metaLabel}>
+                            Исполнитель:
+                            <input
+                                type="text"
+                                value={artist}
+                                onChange={(e) => setArtist(e.target.value)}
+                                className={styles.metaInput}
+                            />
+                        </label>
+                        <label className={styles.metaLabel}>
+                            ID видео с ютуба:
+                            <input
+                                type="text"
+                                value={youtubeId}
+                                onChange={(e) => setYoutubeId(e.target.value)}
+                                className={styles.metaInput}
+                            />
+                        </label>
+                    </div>
+
+
+
+                    <div className={styles.buttonGroup}>
+                        <button className={styles.addButton} onClick={handleFillLyrics}>
+                            Заполнить текст с нуля
+                        </button>
+                        <button className={styles.addButton} onClick={handleFillTranslations}>
+                            Заполнить пустые строки перевода
+                        </button>
+                    </div>
+
+
+
+                    <h2 className={styles.h2text}>Редактирование текста песни</h2>
+                    <button className={styles.addButton} onClick={() => handleAddLine(0)}>
+                        Добавить строку
+                    </button>
+                    {lyrics.map((line, index) => (
+                        <EditSongLyricsLine
+                            line={line}
+                            onChange={handleChangeLine}
+                            onAddLine={handleAddLine}
+                            onDeleteLine={requestDeleteLine}
+                            index={index}
+                            key={index}    
+                        />
+                    ))}
+
+                    <button className={styles.saveButton} onClick={handleSave}>Сохранить</button>
+                    {confirmDeleteLineId !== null && (
+                        <div className={styles.overlay}>
+                            <div className={styles.confirmBox}>
+                                <p>Удалить строку {lyrics[confirmDeleteLineId]?.line_number}?</p>
+                                <div className={styles.confirmButtons}>
+                                    <button onClick={confirmDeleteLine} className={styles.confirmButton}>Да</button>
+                                    <button onClick={cancelDeleteLine} className={styles.cancelButton}>Отмена</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+
+            <BottomNavigation active="home" />
+        </div>
     );
 }
 

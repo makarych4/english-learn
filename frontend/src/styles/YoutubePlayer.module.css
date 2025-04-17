@@ -1,4 +1,3 @@
-/* Контейнер для плеера и кнопки */
 .container {
   display: flex;
   flex-direction: column;
@@ -14,7 +13,6 @@
   position: fixed;
   bottom: 70px;
   right: 20px;
-  /*z-index: 1000;  Чтобы кнопка была поверх других элементов */
 }
 
 .playIcon {
@@ -22,44 +20,43 @@
   transition: transform 0.2s;
 }
 
-/* При наведении иконка увеличивается */
-.playButton:hover .playIcon {
-  transform: scale(1.1);
-}
 
-/* Контейнер для адаптивного видео */
-.videoWrapper {
-  position: relative;
-  width: 100%; /* Занимает всю ширину родительского контейнера */
-  max-width: 900px; /* Максимальная ширина на больших экранах */
-  aspect-ratio: 16 / 9; /* Сохраняет правильное соотношение сторон */
-}
 
-/* iframe занимает всю площадь контейнера */
+
 .videoWrapper iframe {
   width: 100%;
   height: 100%;
   border-radius: 20px;
 }
 
-@media (min-width: 480px) {
-  .videoWrapper {
-    max-width: 300px;
-  }
+
+
+
+
+
+
+
+
+
+.videoContainer {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0;
 }
 
-@media (min-width: 768px) {
-  .videoWrapper {
-    max-width: 700px;
-  }
+.closeButton {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background: none;
+  border: none;
+  cursor: pointer;
 
-  .playButton {
-    bottom: 10px;
-  }
+  padding: 8px;
 }
 
-@media (min-width: 1024px) {
-  .videoWrapper {
-    max-width: 900px;
-  }
+.closeIcon {
+  width: 40px;
+  filter: invert(1);
 }

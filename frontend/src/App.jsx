@@ -11,6 +11,8 @@ import Profile from "./pages/Profile"
 import Search from "./pages/Search"
 import SongLearn from "./pages/SongLearn"
 
+import "./styles/global.css"
+
 
 function Logout() {
   localStorage.clear()

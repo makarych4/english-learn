@@ -32,7 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
 class SongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
-        fields = ["id", "title", "artist", "user", "youtube_id"]
+        fields = ["id", "title", "artist", "user", "youtube_id", "is_published"]
         extra_kwargs = {
             "user": {"read_only": True},
             "youtube_id": {"allow_blank": True},

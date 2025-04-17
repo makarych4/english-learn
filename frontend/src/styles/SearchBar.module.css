@@ -1,137 +1,89 @@
-/* Базовые стили для мобильных */
-.searchInput {
-    display: block; /* Изменяем с flex на block */
-    width: 100%; /* Растягиваем на всю ширину */
-    box-sizing: border-box; /* Учитываем padding в общей ширине */
-    margin-left: 4px;
-    margin-right: 4px;
-    padding: 12px;
-    font-size: 16px;
-    border-radius: 5px;
-    border: 1px solid #ddd; /* Добавляем границу для визуализации */
+.searchBar {
+  /*padding: 16px;*/
 }
 
-/* Стили для таблеток режимов поиска */
+.searchInput {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
 .searchModeTabs {
-    display: flex;
-    gap: 8px;
-    margin: 12px 0;
+  display: flex;
+  margin-bottom: 12px;
+  text-align: center;
 }
 
 .searchModeTab {
-    flex: 1;
-    padding: 18px; /*паадинг только сверху и снизу*/
-    border-radius: 8px;
-    border: 2px solid #e0e0e0;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
+  flex: 1;
+  padding: 8px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #eee;
+  color: #333;
+  cursor: pointer;
 }
 
-.searchModeTab.active {
-    background: #767676;
-    color: white;
-    border-color: #767676;
+.active {
+  background-color: #2d89ff;
+  color: #fff;
 }
 
-/* toggle-переключатель вся область */
-.toggleSwitch {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    background: #ececec;
-    border-radius: 12px;
-    margin: 4px;
-    margin-bottom: 30px;
-}
-
-.toggleLabel {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 500;
-}
-
-.toggleSlider { /* неактивный слайдер овал */
-    position: relative;
-    width: 52px;
-    height: 32px;
-    background: #ddd;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.toggleSlider::before {
-    content: '';
-    position: absolute;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: white;
-    left: 4px;
-    top: 4px;
-    transition: transform 0.3s;
-}
-
-input:checked + .toggleSlider {
-    background: #767676;
-}
-
-input:checked + .toggleSlider::before {
-    transform: translateX(20px);
+.artistList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
 }
 
 .artistItem {
-    display: flex;
-    flex-direction: column;
-    padding: 18px;
-    margin: 4px;
-    border-radius: 8px;
-    background-color: #ececec;
-    cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: #f0f0f0;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  margin: 0;
+  height: 38px;
 }
 
 .artistItem:hover {
-    background-color: #cecece;
+  background-color: #ddd;
 }
 
-.artistLabel {
-    font-size: 16px;
-    font-weight: 500;
+.artistLabel, .artistCount {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #111;
 }
 
-/* Стили для кнопки назад */
-.backButton {
-    width: calc(100% - 8px); /* компенсируем margin 4px с обеих сторон */
-    padding: 18px;
-    margin: 4px;
-    border-radius: 8px;
-    background: #767676;
-    color: white;
-    
-    font-size: 16px;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    cursor: pointer;
-    border: none;
+.songItemContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
 }
 
 .noResults {
-    font-size: 16px;
-    color: #888;
-    margin-top: 70px;
-    text-align: center;
+  text-align: center;
+  color: #888;
+  margin-top: 20px;
 }
 
-/* Скрытие оригинальных элементов управления */
-input[type="radio"],
-input[type="checkbox"] {
-    display: none;
+.backButton {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  font-size: 16px;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  color: #333;
+  cursor: pointer;
+  align-self: flex-start;
 }

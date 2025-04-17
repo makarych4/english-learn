@@ -1,0 +1,68 @@
+.chartContainer {
+  padding: 16px;
+  background: #fdfdfd;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.controls input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.controls button {
+  padding: 10px;
+  font-size: 16px;
+  background-color: #6a5acd;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.controls button:hover {
+  background-color: #5941a9;
+}
+
+.controls button:disabled {
+  background-color: #bbb;
+  cursor: not-allowed;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+  gap: 12px;
+}
+
+/* ✅ Mobile-first стиль графика */
+@media (max-width: 480px) {
+  .chartContainer {
+    padding: 12px 8px;
+  }
+
+  .recharts-wrapper {
+    font-size: 12px;
+  }
+
+  .controls {
+    flex-direction: column;
+  }
+
+  .recharts-cartesian-axis-tick-value {
+    font-size: 12px;
+  }
+}
