@@ -17,8 +17,8 @@ urlpatterns = [
     path("songLyrics/public/<int:song_id>/", views.SongLyricsPublicList.as_view(), name="lyrics-list-by-song-public"),
     path('songLyrics/update/<int:song_id>/', views.SongLyricsUpdate.as_view(), name='update-lyrics'),
 
-    path("word-frequency/", views.WordFrequencyTopAPIView.as_view()),
-    path("word-frequency/custom/", views.WordFrequencyCustomAPIView.as_view()),
+    path("public/word-frequency/", views.WordFrequencyTopAPIView.as_view()),
+    path("public/word-frequency/custom/", views.WordFrequencyCustomAPIView.as_view()),
 
 
 

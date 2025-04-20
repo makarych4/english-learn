@@ -18,7 +18,7 @@ function WordFrequencyChart() {
     }, [page, customMode]);
 
     const fetchTopWords = (pageNumber) => {
-        api.get("/api/word-frequency/", { params: { page: pageNumber } })
+        api.get("/api/public/word-frequency/", { params: { page: pageNumber } })
             .then(res => {
                 setData(res.data.results);
                 setPageCount(Math.ceil(res.data.count / 10));
@@ -31,7 +31,7 @@ function WordFrequencyChart() {
         const wordList = words.split(",").map(w => w.trim().toLowerCase()).filter(Boolean);
         if (wordList.length === 0) return;
 
-        api.post("/api/word-frequency/custom/", { words: wordList })
+        api.post("/api/public/word-frequency/custom/", { words: wordList })
             .then(res => setData(res.data))
             .catch(err => alert("Ошибка при обработке слов"));
     };

@@ -257,7 +257,7 @@ class WordFrequencyTopAPIView(generics.ListAPIView):
         top_items = counter.most_common()
         return [{"word": word, "frequency": count} for word, count in top_items]
 
-    def list(self):
+    def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
         return self.get_paginated_response(page)
