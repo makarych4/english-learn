@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Song, SongLyrics
+from .models import Song, SongLyrics, Profile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -18,6 +18,18 @@ class UserSerializer(serializers.ModelSerializer):
             'date_joined': {'read_only': True},
             'password': {'write_only': True}
         }
+
+    def create(self, validated_data):
+        # Шаг 1: Создаем и сохраняем User, получаем объект с id
+        user = User.objects.create_user(**validated_data) 
+        # Шаг 2: Создаем и сохраняем Profile, используя user с уже существующим id
+        Profile.objects.create(user=user)
+        return user
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ["is_vip"]
 
     def validate_email(self, value):
         """ Проверка, что email уникален """

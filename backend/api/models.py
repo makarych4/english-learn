@@ -53,3 +53,8 @@ class SongLyrics(models.Model):
 
     def __str__(self):
         return f"{self.song.title} (Line {self.line_number})"
+    
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    is_vip = models.BooleanField(default=False)

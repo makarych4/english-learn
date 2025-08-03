@@ -288,7 +288,11 @@ class CurrentUserView(APIView):
 
     def get(self, request):
         user = request.user
+
+        is_vip_status = user.profile.is_vip
+
         return Response({
             "username": user.username,
             "is_superuser": user.is_superuser,
+            "is_vip": is_vip_status,
         })

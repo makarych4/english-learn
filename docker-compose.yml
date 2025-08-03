@@ -1,5 +1,6 @@
 services:
   backend:
+    restart: always
     build: ./backend
     container_name: django_backend
     command: >
@@ -16,7 +17,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-        restart: true
+        
 
   db:
     image: postgres:13

@@ -14,7 +14,7 @@ function EditSong() {
     const [youtubeId, setYoutubeId] = useState("");
     const [confirmDeleteLineId, setConfirmDeleteLineId] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isSuperuser, setIsSuperuser] = useState(false);
+    const [isVip, setIsVip] = useState(false);
     const { songId } = useParams();
     const navigate = useNavigate();
 
@@ -30,7 +30,7 @@ function EditSong() {
 
         api.get('/api/user/')
             .then((res) => {
-                setIsSuperuser(res.data.is_superuser);
+                setIsVip(res.data.is_vip);
             })
             .catch((err) => {
                 console.log("Ошибка при получении пользователя", err);
@@ -230,7 +230,7 @@ function EditSong() {
                     </div>
 
 
-                    {isSuperuser && (
+                    {isVip && (
                     <div className={styles.buttonGroup}>
                         <button className={styles.addButton} onClick={handleFillLyrics}>
                             Заполнить текст с нуля
