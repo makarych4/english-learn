@@ -21,5 +21,5 @@ urlpatterns = [
     path("public/word-frequency/custom/", views.WordFrequencyCustomAPIView.as_view()),
 
 
-
+    path('user/', views.CurrentUserView.as_view(), name='current-user'),
 ]

@@ -283,4 +283,12 @@ class WordFrequencyCustomAPIView(APIView):
         return Response(result)
     
 
-    
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        return Response({
+            "username": user.username,
+            "is_superuser": user.is_superuser,
+        })

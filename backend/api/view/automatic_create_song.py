@@ -4,7 +4,8 @@ from rest_framework import status
 from ..models import Song, SongLyrics
 from ..utils.lyrics_tools import get_genius
 from ..utils.youtube_tools import get_youtube_music_id
-from ..utils.translate_tools import batch_translate_lines
+#from ..utils.translate_tools import batch_translate_lines
+from ..utils.translate_yandex import batch_translate_lines
 
 """Создание строк песни, названия, исполнителя с API Genius, и youtube_id"""
 class CreateSongWithGeniusView(APIView):

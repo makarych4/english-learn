@@ -1,13 +1,3 @@
-# FROM python:3.13-slim
-
-# COPY requirements.txt requirements.txt
-# RUN pip install -r requirements.txt
-
-# COPY . .
-
-# CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000"]
-
-
 # backend/Dockerfile
 
 # 1. Базовый образ

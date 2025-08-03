@@ -8,6 +8,7 @@ pytz
 sqlparse
 psycopg2-binary
 python-dotenv
+gunicorn
 
 # AI song creation dependencies:
 lyricsgenius

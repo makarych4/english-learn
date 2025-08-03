@@ -14,6 +14,7 @@ function EditSong() {
     const [youtubeId, setYoutubeId] = useState("");
     const [confirmDeleteLineId, setConfirmDeleteLineId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isSuperuser, setIsSuperuser] = useState(false);
     const { songId } = useParams();
     const navigate = useNavigate();
 
@@ -26,6 +27,14 @@ function EditSong() {
 
         const isAuth = await ensureAuth(navigate);
         if (!isAuth) return;
+
+        api.get('/api/user/')
+            .then((res) => {
+                setIsSuperuser(res.data.is_superuser);
+            })
+            .catch((err) => {
+                console.log("Ошибка при получении пользователя", err);
+            });
         
         api
             .get(`/api/songLyrics/${songId}/`)
@@ -221,7 +230,7 @@ function EditSong() {
                     </div>
 
 
-
+                    {isSuperuser && (
                     <div className={styles.buttonGroup}>
                         <button className={styles.addButton} onClick={handleFillLyrics}>
                             Заполнить текст с нуля
@@ -230,6 +239,16 @@ function EditSong() {
                             Заполнить пустые строки перевода
                         </button>
                     </div>
+                    )}
+
+                    {/* <div className={styles.buttonGroup}>
+                        <button className={styles.addButton} onClick={handleFillLyrics}>
+                            Заполнить текст с нуля
+                        </button>
+                        <button className={styles.addButton} onClick={handleFillTranslations}>
+                            Заполнить пустые строки перевода
+                        </button>
+                    </div> */}
 
 
 
