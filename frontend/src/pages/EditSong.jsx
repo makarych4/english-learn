@@ -168,7 +168,8 @@ function EditSong() {
     
             await api.post(`/api/songLyrics/update/${songId}/`, lyrics);
 
-            alert("Изменения сохранены!");
+            if (!isPublished) alert("Изменения сохранены!");
+            else alert("Изменения сохранены и видны другим пользователям!")
             // navigate("/");
         } catch (err) {
             alert("Ошибка. Данные не изменены.");

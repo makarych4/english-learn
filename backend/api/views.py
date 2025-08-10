@@ -20,7 +20,7 @@ from django.db.models.functions import Lower
 
 from .serializers import TitleGroupSerializer, SongVersionSerializer
 from django.db.models.functions import Lower
-from django.db.models import Count, Max, Subquery, OuterRef, CharField, Case, When, IntegerField, Value
+from django.db.models import Count, Max, Subquery, OuterRef, CharField, Case, When, IntegerField, Value, BooleanField
 
 class BaseSongListView:
     pagination_class = SongPagination
@@ -176,6 +176,11 @@ class BaseSongListView:
                             default=None,
                             output_field=IntegerField()
                         ),
+                        is_published=Case(
+                            When(count=1, then='is_published'),
+                            default=None,
+                            output_field=BooleanField()
+                        ),
                         artist=Subquery(most_common_artist, output_field=CharField()),
                         title=Subquery(most_common_title, output_field=CharField()),
                     )
@@ -253,6 +258,11 @@ class BaseSongListView:
                     default=None,
                     output_field=IntegerField()
                 ),
+                is_published=Case(
+                            When(count=1, then='is_published'),
+                            default=None,
+                            output_field=BooleanField()
+                        ),
                 artist=Subquery(most_common_artist_in_group, output_field=CharField()),
                 title=Subquery(most_common_title_in_group, output_field=CharField())
             )

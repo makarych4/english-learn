@@ -64,6 +64,7 @@ class TitleGroupSerializer(serializers.Serializer):
     artist = serializers.CharField()
     count = serializers.IntegerField()
     id = serializers.IntegerField(allow_null=True, required=False)
+    is_published = serializers.BooleanField(allow_null=True, required=False)
 
         
 class SongLyricsSerializer(serializers.ModelSerializer):
