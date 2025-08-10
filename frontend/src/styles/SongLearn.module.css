@@ -39,3 +39,23 @@
     font-size: 12px;
     margin-top: 4px;
 }
+
+/* НАдписи с названиеми исполнителя и песни */ 
+.songHint {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.selectedArtist{
+  font-size: 1.2rem;
+  color: #555;
+  margin: 0;
+}
+
+.selectedTitle{
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #111;
+  margin: 0;
+  padding-bottom: 4px;
+}

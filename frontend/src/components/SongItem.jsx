@@ -40,13 +40,6 @@ function SongItem({ song, onClick }) {
                 )
             }
         </div>
-        // <div onClick={handleClick} className={styles.songItem}>
-        //     <div>
-        //         <p className={styles.songTitle}>{song.title}</p>
-        //         <p className={styles.songArtist}>{song.artist}</p>
-        //     </div>
-        //     {song.count > 1 && (<span className={styles.versionCount}>{song.count}</span>)}
-        // </div>
     );
 }
 

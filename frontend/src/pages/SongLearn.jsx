@@ -22,26 +22,45 @@ function SongLearn() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        checkOwnership(songId)
-        .then(setIsOwner)
-        .catch(() => setIsOwner(false));
-        getLyrics();
-        getSongData();
-    }, [songId]);
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                // 1. Сначала определяем, является ли пользователь владельцем
+                const ownerStatus = await checkOwnership(songId);
+                setIsOwner(ownerStatus);
 
-    const getLyrics = () => {
-        setLoading(true);
+                // 2. Формируем URL на основе полученного статуса
+                const lyricsUrl = ownerStatus
+                    ? `/api/songLyrics/${songId}/`
+                    : `/api/songLyrics/public/${songId}/`;
 
-        api
-            .get(`/api/songLyrics/public/${songId}/`)
-            .then((res) => res.data)
-            .then((data) => {
-                setLyrics(data);
-                console.log(data);
-            })
-            .catch((err) => alert(err))
-            .finally(() => setLoading(false));
-    };
+                const songUrl = ownerStatus
+                    ? `/api/songs/${songId}/`
+                    : `/api/songs/public/${songId}/`;
+
+                // 3. Выполняем запросы параллельно для скорости
+                const [lyricsResponse, songResponse] = await Promise.all([
+                    api.get(lyricsUrl),
+                    api.get(songUrl)
+                ]);
+
+                // 4. Устанавливаем данные
+                setLyrics(lyricsResponse.data);
+                setSongData(songResponse.data);
+
+            } catch (error) {
+                // Обрабатываем ошибку, если любой из запросов не удался
+                // (например, 404, если песни не существует ни там, ни там)
+                console.error("Failed to fetch song data:", error);
+                alert("Не удалось загрузить данные песни. Возможно, она не существует или у вас нет к ней доступа.");
+                navigate("/"); // Перенаправляем на главную
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData(); // Вызываем асинхронную функцию
+    }, [songId]); // Зависимость только от songId
 
     const handleEditOrClone = async () => {
         if (isOwner) {
@@ -83,15 +102,6 @@ function SongLearn() {
         }
     };
 
-    const getSongData = () => {
-        api
-            .get(`/api/songs/public/${songId}/`)
-            .then((res) => {
-                setSongData(res.data);
-            })
-            .catch((err) => alert(err));
-    };
-
     return (
         <div className={styles.pageContainer}>
             <div className={styles.iconRow}>
@@ -100,7 +110,14 @@ function SongLearn() {
                     <span className={styles.iconLabel}>Редактировать</span>
                 </div>
             </div>
-            <h2 className={styles.h2text}>Текст песни</h2>
+            <div className={styles.songHint}>
+                <h1 className={styles.selectedTitle}>
+                    {songData.title}
+                </h1>
+                <h2 className={styles.selectedArtist}>
+                    {songData.artist}
+                </h2>
+            </div>
 
             {loading ? (
                 <LoadingIndicator />

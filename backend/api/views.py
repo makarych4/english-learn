@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.db import transaction
+from rest_framework import status
 # Поиск
 import re
 from collections import Counter
@@ -15,147 +16,19 @@ from django.contrib.postgres.search import TrigramWordSimilarity, TrigramSimilar
 from django.db.models import F, Q, Count, OuterRef, Subquery, CharField, Min, Max
 from django.db.models.functions import Lower
 
-"""Создание песни и вывод песен пользователя"""
-class SongListUserCreate(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
 
-    # Песни созданные пользователем
-    def get_queryset(self):
-        user = self.request.user
-
-        queryset = Song.objects.filter(user=user)
-
-        return queryset.order_by("-id")
-    
-    pagination_class = SongPagination
-
-    def get_serializer_class(self):
-        artist_group = self.request.query_params.get("artist_group", "") == "true"
-        selected_artist = self.request.query_params.get("selected_artist", "").strip().lower()
-        if artist_group and not selected_artist:
-            return ArtistGroupSerializer
-        return SongSerializer
-    
-    @staticmethod
-    def get_similarity_threshold(query, base=0.15, step=0.01, max_threshold=0.5):
-        """
-        Рассчитывает динамический порог схожести в зависимости от длины запроса.
-        
-        Параметры:
-        - query: поисковый запрос
-        - base: базовый порог для пустого запроса
-        - step: шаг увеличения порога на каждый символ
-        - max_threshold: максимально допустимый порог
-        """
-        return min(base + len(query) * step, max_threshold)
-
-    def get_queryset(self):
-        user = self.request.user
-
-        query = self.request.query_params.get("query", "").strip().lower()
-        search_type = self.request.query_params.get("search_type", "")
-        artist_group = self.request.query_params.get("artist_group", "") == "true"
-        selected_artist = self.request.query_params.get("selected_artist", "").strip().lower()
-
-        if search_type == "all_songs_search":
-            queryset = Song.objects.filter(user=user).all().order_by("-id")
-
-        elif search_type == "reduce_songs_search":
-            """поиск по тексту песен с использованием триграммного сравнения слов"""
-            # Динамически рассчитываем порог схожести (чем длиннее запрос, тем выше порог)
-            trigram_threshold = self.get_similarity_threshold(
-                query, 
-                base=0,
-                step=0.05,
-                max_threshold=0.45
-            )
-            
-            # Основной запрос к базе данных
-            queryset = (
-                Song.objects.filter(user=user)
-                # Аннотируем схожесть полной фразы запроса с текстом песни
-                .annotate(
-                    phrase_similarity=TrigramWordSimilarity(query, 'search_text')
-                )
-                # Аннотируем схожесть первых трех слов запроса (для частичных совпадений)
-                .annotate(
-                    words_similarity=TrigramWordSimilarity(
-                        ' '.join(query.split()), # Берем первые 3 слова запроса query.split()[:3]
-                        'search_text'
-                    )
-                )
-                # Фильтруем результаты по порогу схожести
-                .filter(
-                    Q(phrase_similarity__gt=trigram_threshold) | # Полное совпадение фразы
-                    Q(words_similarity__gt=trigram_threshold)    # Частичное совпадение слов
-                )
-                # Создаем комбинированную метрику релевантности
-                .annotate(
-                    total_similarity=F('phrase_similarity') * 2 + F('words_similarity')
-                )
-                # Сортируем по убыванию релевантности
-                .order_by(
-                    '-total_similarity',  # Основная сортировка по комбинированной метрике
-                    '-phrase_similarity'  # Дополнительная сортировка по точности фразы
-
-                )
-            )
-            
-        else:
-            return Song.objects.none()
-            
-        if artist_group:
-            if selected_artist:
-                return queryset.filter(artist__iexact=selected_artist).order_by("title")
-            else:
-                # Получаем наиболее частое написание исполнителя
-                most_common_artist = (
-                    Song.objects
-                    .filter(artist__iexact=OuterRef("artist"))
-                    .values("artist")
-                    .annotate(count=Count("id"))
-                    .order_by("-count", "artist")
-                    .values("artist")[:1]
-                )
-
-                return (
-                    queryset
-                    .annotate(artist_lower=Lower("artist"))
-                    .values("artist_lower")
-                    .annotate(
-                        count=Count("id"),
-                        artist=Subquery(most_common_artist, output_field=CharField())
-                    )
-                    .order_by("-count", "artist")
-                )
-            
-        return queryset
-
-
-
-    # Создание песни
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(user=self.request.user)
-        else:
-            print(serializer.errors)
-
-
-
-# Объединить классы
-# Отличие только в permission_classes = [] и Song.objects.filter(is_published=True) / (user=user)
 
 from .serializers import TitleGroupSerializer, SongVersionSerializer
 from django.db.models.functions import Lower
 from django.db.models import Count, Max, Subquery, OuterRef, CharField, Case, When, IntegerField, Value
 
-
-"""Получение списка песен для общего просмотра"""
-class SongListPublic(generics.ListAPIView):
-    permission_classes = [AllowAny]
+class BaseSongListView:
     pagination_class = SongPagination
 
     def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return SongSerializer
+
         artist_group = self.request.query_params.get("artist_group", "") == "true"
         selected_artist = self.request.query_params.get("selected_artist", "").strip().lower()
         selected_title = self.request.query_params.get("selected_title", "").strip().lower()
@@ -185,6 +58,10 @@ class SongListPublic(generics.ListAPIView):
         - max_threshold: максимально допустимый порог
         """
         return min(base + len(query) * step, max_threshold)
+    
+    def get_base_queryset(self):
+        """Абстрактный метод: возвращает queryset с базовым фильтром."""
+        raise NotImplementedError
 
 
     def get_queryset(self):
@@ -194,8 +71,10 @@ class SongListPublic(generics.ListAPIView):
         selected_artist = self.request.query_params.get("selected_artist", "").strip().lower()
         selected_title = self.request.query_params.get("selected_title", "").strip().lower()
 
+        queryset = self.get_base_queryset()
+
         if search_type == "all_songs_search":
-            queryset = Song.objects.filter(is_published=True).all().order_by('artist', 'title')
+            queryset = queryset.order_by('artist', 'title')
 
         elif search_type == "reduce_songs_search":
             """
@@ -204,10 +83,7 @@ class SongListPublic(generics.ListAPIView):
             2. Средний приоритет у совпадений в исполнителе (artist).
             3. Базовый приоритет у совпадений в тексте песни (search_text).
             """
-            if not query:
-                # Если запрос пустой, нет смысла в сложном поиске, возвращаем все
-                queryset = Song.objects.filter(is_published=True)
-            else:
+            if query:
                 # Порог для точного совпадения (название, исполнитель)
                 exact_match_threshold = 0.3
                 # Порог для совпадения в тексте (может быть ниже)
@@ -216,7 +92,7 @@ class SongListPublic(generics.ListAPIView):
                 )
 
                 queryset = (
-                    Song.objects.filter(is_published=True)
+                    queryset
                     # 1. Аннотируем схожесть для каждого ключевого поля
                     .annotate(
                         title_similarity=TrigramSimilarity('title', query),
@@ -391,9 +267,30 @@ class SongListPublic(generics.ListAPIView):
         else:
             # Во всех остальных случаях (включая пустой reduce_songs_search) сортируем по алфавиту
             return grouped_queryset.order_by("artist", "title")
+
+"""Создание песни и вывод песен пользователя"""
+class SongListUserCreate(BaseSongListView, generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_base_queryset(self):
+        return Song.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        if serializer.is_valid():
+            serializer.save(user=self.request.user)
+        else:
+            print(serializer.errors)
+
+
+"""Получение списка песен для общего просмотра"""
+class SongListPublic(BaseSongListView, generics.ListAPIView):
+    permission_classes = [AllowAny]
+    
+    def get_base_queryset(self):
+        return Song.objects.filter(is_published=True)
     
 """Получение данных песни для редактирования"""
-class SongRetrieve(generics.RetrieveUpdateAPIView): # Больше не наследуемся от BaseSongRetrieve
+class SongRetrieve(generics.RetrieveUpdateAPIView):
     serializer_class = SongSerializer
     permission_classes = [IsAuthenticated]
 
@@ -594,3 +491,17 @@ class CloneSongView(APIView):
         # 4. Возвращаем данные о новой песне, чтобы фронтенд знал ее ID
         serializer = SongSerializer(new_song)
         return Response(serializer.data, status=201) # 201 Created
+    
+class SongOwnershipCheck(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            song = Song.objects.get(pk=pk)
+        except Song.DoesNotExist:
+            # Песня вообще не существует
+            return Response({"is_owner": False}, status=status.HTTP_200_OK)
+
+        # Проверка, что песня принадлежит текущему пользователю
+        is_owner = (song.user == request.user)
+        return Response({"is_owner": is_owner}, status=status.HTTP_200_OK)
