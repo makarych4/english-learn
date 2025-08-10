@@ -1,4 +1,4 @@
-button, input, textarea {
+  body {
     font-family: sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
-  

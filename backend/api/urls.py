@@ -22,4 +22,6 @@ urlpatterns = [
 
 
     path('user/', views.CurrentUserView.as_view(), name='current-user'),
+
+    path('songs/clone/<int:original_song_id>/', views.CloneSongView.as_view(), name='clone-song'),
 ]

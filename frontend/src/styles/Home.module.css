@@ -1,9 +1,8 @@
 
  .pageContainer {
-  padding: 16px;
   font-family: sans-serif;
   position: relative;
-  margin-bottom: 12rem;
+  margin-bottom: 160px;
 }
 
 .chartButton {

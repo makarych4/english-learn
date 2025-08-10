@@ -35,4 +35,22 @@ async function ensureAuth(navigate) {
     }
 }
 
+export async function checkOwnership(songId, navigate) {
+    if (!songId) throw new Error("ID песни не указан");
+
+    const isAuth = await ensureAuth(navigate);
+        if (!isAuth) return;
+
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    if (!token) throw new Error("Токен доступа отсутствует");
+
+    const response = await api.get(`/api/songs/${songId}/`);
+    const song = response.data;
+
+    const decoded = jwtDecode(token);
+    const userId = decoded.user_id;
+
+    return song.user === userId;
+}
+
 export default ensureAuth;

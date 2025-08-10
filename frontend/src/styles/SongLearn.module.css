@@ -1,11 +1,10 @@
 .pageContainer {
-  padding: 16px;
   font-family: sans-serif;
   position: relative;
 }
 
 .container {
-    padding: 1rem;
+    padding: 8px;
     background-color: #fafafa;
     border-radius: 8px;
     margin-bottom: 5rem;
@@ -16,3 +15,27 @@
     border-top: 1px solid #ddd;
     margin: 1rem 0;
   }
+
+  .iconRow {
+    display: flex;
+    justify-content: center;
+    gap: 100px;
+    margin: 10px 0;
+}
+
+.iconContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.iconContainer img {
+    width: 35px;
+    height: 35px;
+}
+
+.iconLabel {
+    font-size: 12px;
+    margin-top: 4px;
+}

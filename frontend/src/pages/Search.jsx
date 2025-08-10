@@ -1,6 +1,6 @@
 import BottomNavigation from '../components/BottomNavigation';
 import SearchBar from "../components/SearchBar";
-import styles from "../styles/AuthForm.module.css";
+import styles from "../styles/Search.module.css";
 
 function Search() {
     

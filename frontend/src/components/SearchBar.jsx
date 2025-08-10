@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom"; // Главный инструмент
 import Pagination from "./Pagination";
 import api from "../api";
 import SongItem from "./SongItem";
@@ -6,100 +7,129 @@ import LoadingIndicator from "./LoadingIndicator";
 import styles from "../styles/SearchBar.module.css";
 
 function SearchBar() {
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // --- ШАГ 1: URL - единственный источник правды ---
+    // Читаем все параметры из URL. Если их нет, ставим значения по умолчанию.
+    const query = searchParams.get("query") || "";
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const viewMode = searchParams.get("viewMode") || "songs";
+    const selectedArtist = searchParams.get("selectedArtist") || "";
+    const selectedTitle = searchParams.get("selectedTitle") || "";
+
+    // --- ШАГ 2: Локальное состояние, не попадающее в URL ---
     const [songs, setSongs] = useState([]);
-    const [query, setQuery] = useState("");
     const [loading, setLoading] = useState(false);
-    const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
-    const [selectedArtist, setSelectedArtist] = useState("");
-    const [viewMode, setViewMode] = useState("songs"); // "songs" или "artists"
+    // Отдельный стейт для поля ввода, чтобы не менять URL на каждое нажатие
+    const [inputValue, setInputValue] = useState(query);
 
-    const prevParamsRef = useRef({ query, page, selectedArtist });
-
+    // --- ШАГ 3: Обновленный useEffect для получения данных ---
+    // Этот эффект запускается КАЖДЫЙ РАЗ, когда меняется URL (searchParams)
     useEffect(() => {
-        const isQueryChange = prevParamsRef.current.query !== query;
-        prevParamsRef.current = { query, page, selectedArtist };
+        const getSongs = () => {
+            setLoading(true);
+            const trimmed = query.replaceAll(" ", "");
+            const resolvedSearchType = trimmed.length === 0 ? "all_songs_search" : "reduce_songs_search";
+            
+            const params = {
+                query,
+                page,
+                search_type: resolvedSearchType,
+            };
+            if (viewMode === "artists") params.artist_group = true;
+            if (selectedArtist) params.selected_artist = selectedArtist;
+            if (selectedTitle) params.selected_title = selectedTitle;
 
-        let timeoutId;
-
-        if (viewMode === "songs") {
-            if (isQueryChange) {
-                timeoutId = setTimeout(() => {
-                    setPage(1);
-                    getSongs(1);
-                }, 1000);
-            } else {
-                getSongs(page);
-            }
-        } else if (viewMode === "artists") {
-            getSongs(page);
-        }
-
-        return () => {
-            if (timeoutId) clearTimeout(timeoutId);
+            api.get("/api/songs/public/", { params })
+                .then((res) => {
+                    setSongs(res.data.results);
+                    setTotalPages(res.data.count ? Math.ceil(res.data.count / 10) : 0);
+                })
+                .catch((err) => alert(err))
+                .finally(() => setLoading(false));
         };
-    }, [query, page, selectedArtist, viewMode]);
 
-    const handleViewModeChange = (viewType) => {
-        setViewMode(viewType);
-        setSelectedArtist("");
-        setPage(1);
+        getSongs();
+    }, [searchParams]); // Зависимость только от searchParams!
+
+    // --- ШАГ 4: Эффект для задержки поиска (Debouncing) ---
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            // Если значение в инпуте отличается от того, что в URL, обновляем URL
+            if (inputValue !== query) {
+                updateSearchParams({ query: inputValue, page: 1 });
+            }
+        }, 800); // Задержка 800мс
+
+        return () => clearTimeout(timeoutId);
+    }, [inputValue]);
+
+     useEffect(() => {
+        // Если значение в URL (query) не совпадает со значением в инпуте,
+        // обновляем инпут, чтобы он отражал URL.
+        if (query !== inputValue) {
+            setInputValue(query);
+        }
+    }, [query]);
+
+
+    // --- ШАГ 5: Хелпер для удобного обновления URL ---
+    const updateSearchParams = (newParams) => {
+        // Создаем копию текущих параметров
+        const currentParams = new URLSearchParams(searchParams);
+        // Устанавливаем или удаляем новые параметры
+        for (const [key, value] of Object.entries(newParams)) {
+            if (value) {
+                currentParams.set(key, value);
+            } else {
+                currentParams.delete(key);
+            }
+        }
+        setSearchParams(currentParams);
     };
 
-    const getSongs = (pageNumber) => {
-        setLoading(true);
 
-        const trimmed = query.replaceAll(" ", "");
-        const resolvedSearchType = trimmed.length === 0 ? "all_songs_search" : "reduce_songs_search";
+    // --- ШАГ 6: Обновленные обработчики событий ---
+    // Все они теперь вызывают updateSearchParams, чтобы изменить URL
 
-        const params = {
-            query,
-            page: pageNumber,
-            search_type: resolvedSearchType,
-        };
-    
-        if (viewMode === "artists") {
-            params.artist_group = true;
-        }
-
-        if (selectedArtist.trim()) {
-            params.selected_artist = selectedArtist;
-        }
-
-        api
-            .get("/api/songs/public/", { params })
-            .then((res) => {
-                setSongs(res.data.results);
-                setTotalPages(res.data.count ? Math.ceil(res.data.count / 10) : 0);
-            })
-            .catch((err) => alert(err))
-            .finally(() => setLoading(false));
+    const handleViewModeChange = (newViewMode) => {
+        updateSearchParams({
+            viewMode: newViewMode,
+            page: 1,
+            selectedArtist: null, // Удаляем параметры
+            selectedTitle: null,
+        });
     };
 
     const handlePageClick = ({ selected }) => {
-        setPage(selected + 1);
-        setLoading(true);
+        updateSearchParams({ page: selected + 1 });
     };
 
     const handleArtistClick = (artist) => {
-        setSelectedArtist(artist);
-        setPage(1);
-        setLoading(true);
+        updateSearchParams({
+            selectedArtist: artist,
+            page: 1,
+            selectedTitle: null, // Сбрасываем title при выборе артиста
+        });
     };
 
-    const handleBackClick = () => {
-        setSelectedArtist("");
-        setPage(1);
-        setLoading(true);
+    const handleSongGroupClick = (song) => {
+        // Эта функция используется только для групп с несколькими версиями
+        updateSearchParams({
+            selectedArtist: song.artist,
+            selectedTitle: song.title,
+            page: 1,
+        });
     };
 
     return (
         <div className={styles.searchBar}>
             <input
                 className={styles.searchInput}
-                value={query}
+                value={inputValue}
                 type="search"
-                onChange={e => setQuery(e.target.value)}
+                onChange={e => setInputValue(e.target.value)}
                 placeholder="Поиск..."
             />
     
@@ -116,17 +146,26 @@ function SearchBar() {
                 >
                     Исполнители
                 </label>
-                
             </div>
 
-            {/* {selectedArtist && (
-                <button
-                    className={styles.backButton}
-                    onClick={handleBackClick}
-                >
-                    ← Назад к исполнителям
-                </button>
-            )} */}
+            {!loading && selectedArtist && !selectedTitle && (
+                <div className={styles.songHint}>
+                    <p className={styles.selectedArtistWithout}>
+                        {selectedArtist}
+                    </p>
+                </div>
+            )}
+
+            {!loading && selectedArtist && selectedTitle && (
+                <div className={styles.songHint}>
+                    <p className={styles.selectedTitle}>
+                        {selectedTitle}
+                    </p>
+                    <p className={styles.selectedArtist}>
+                        {selectedArtist}
+                    </p>
+                </div>
+            )}
 
             {loading ? (
                 <LoadingIndicator />
@@ -144,14 +183,18 @@ function SearchBar() {
                                     <span className={styles.artistCount}>{item.count}</span>
                                 </p>
                             ))}
-                            {songs.length === 0 && (
-                                <p className={styles.noResults}>Нет результатов</p>
-                            )}
+                            {songs.length === 0 && <p className={styles.noResults}>Нет результатов</p>}
                         </div>
                     ) : (
                         <div className={styles.songItemContainer}>
                             {songs.length > 0 ? (
-                                songs.map(song => <SongItem key={song.id} song={song} />)
+                                songs.map(song => (
+                                    <SongItem
+                                        key={song.id || `${song.artist}-${song.title}`}
+                                        song={song}
+                                        onClick={song.count ? handleSongGroupClick : null}
+                                    />
+                                ))
                             ) : (
                                 <p className={styles.noResults}>Нeт результатов</p>
                             )}

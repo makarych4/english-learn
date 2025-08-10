@@ -3,6 +3,12 @@
     border-radius: 8px;
     padding: 10px;
     cursor: pointer;
+
+    display: flex; /* Включаем Flexbox */
+    justify-content: space-between; /* Распределяем пространство МЕЖДУ элементами */
+    align-items: center; /* Выравниваем элементы по центру по вертикали */
+
+    min-height: 38px;
   }
   
   .songItem:hover {
@@ -21,35 +27,16 @@
     color: #555;
     margin: 0;
   }
-  
 
-
-/* .songItem {
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    border-radius: 8px;
-    background-color: #ececec;
-    cursor: pointer;
+  .versionCount {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #111;
 }
 
-.songItem:hover {
-    background-color: #cecece;
+.centeredTitle {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #111;
+  margin: 0; /* Убираем все отступы */
 }
-
-.songTitle {
-    font-size: 16px;
-    font-weight: bold;
-    text-align: left;
-    color: #333;
-    margin-top: 0px;
-}
-
-.songArtist {
-    font-size: 14px;
-    color: #666;
-    text-align: left;
-    margin-top: -5px;
-    margin-bottom: 0px;
-}
- */

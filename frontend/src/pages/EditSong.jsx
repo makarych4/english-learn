@@ -7,11 +7,16 @@ import LoadingIndicator from "../components/LoadingIndicator";
 import ensureAuth from "../utils/authUtils";
 import styles from "../styles/EditSong.module.css"
 
+import DeleteIcon from "../assets/trash.svg";
+import PublishIcon from "../assets/publish.svg";
+
+
 function EditSong() {
     const [lyrics, setLyrics] = useState([]);
     const [title, setTitle] = useState("");
     const [artist, setArtist] = useState("");
     const [youtubeId, setYoutubeId] = useState("");
+    const [isPublished, SetisPublished] = useState("");
     const [confirmDeleteLineId, setConfirmDeleteLineId] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isVip, setIsVip] = useState(false);
@@ -51,11 +56,50 @@ function EditSong() {
                 setTitle(res.data.title);
                 setArtist(res.data.artist);
                 setYoutubeId(res.data.youtube_id);
+                SetisPublished(res.data.is_published)
+
             })
             .catch((err) => alert(err))
             .finally(() => setLoading(false));
     };
 
+    const handleDeleteSong = async () => {
+        const isAuth = await ensureAuth(navigate);
+        if (!isAuth) return;
+
+        const confirmed = window.confirm("Вы собираетесь навсегда удалить песню целиком.");
+        if (!confirmed) return;
+
+        try {
+            const res = await api.delete(`/api/songs/delete/${songId}/`);
+            if (res.status === 204) {
+                alert("Песня успешно удалена!");
+                navigate("/");
+            } else {
+                alert("Не удалось удалить песню");
+            }
+        } catch (error) {
+            alert("Ошибка при удалении");
+            console.error(error);
+        }
+    };
+
+    const handlePublishSong = async () => {
+        const isAuth = await ensureAuth(navigate);
+        if (!isAuth) return;
+
+        const confirmed = window.confirm("Публикация песни сделает её видимой для других пользователей. Все внесённые изменения сохранятся");
+        if (!confirmed) return;
+
+        try {
+            await api.patch(`/api/songs/${songId}/`, { is_published: true });
+            alert("Песня успешно опубликована!");
+            navigate("/");
+        } catch (error) {
+            alert("Ошибка при публикации песни");
+            console.error(error);
+        }
+    };
 
     const handleAddLine = (index) => {
         const newLine = {
@@ -125,16 +169,13 @@ function EditSong() {
             await api.post(`/api/songLyrics/update/${songId}/`, lyrics);
 
             alert("Изменения сохранены!");
-            navigate("/");
+            // navigate("/");
         } catch (err) {
             alert("Ошибка. Данные не изменены.");
         } finally {
             setLoading(false);
         }
     };
-
-
-    
 
     const handleFillLyrics = async () => {
         setLoading(true);
@@ -229,7 +270,6 @@ function EditSong() {
                         </label>
                     </div>
 
-
                     {isVip && (
                     <div className={styles.buttonGroup}>
                         <button className={styles.addButton} onClick={handleFillLyrics}>
@@ -241,16 +281,17 @@ function EditSong() {
                     </div>
                     )}
 
-                    {/* <div className={styles.buttonGroup}>
-                        <button className={styles.addButton} onClick={handleFillLyrics}>
-                            Заполнить текст с нуля
-                        </button>
-                        <button className={styles.addButton} onClick={handleFillTranslations}>
-                            Заполнить пустые строки перевода
-                        </button>
-                    </div> */}
-
-
+                    <div className={styles.iconRow}>
+                        <div className={styles.iconContainer} onClick={handleDeleteSong}>
+                            <img src={DeleteIcon} alt="Удалить" />
+                            <span className={styles.iconLabel}>Удалить</span>
+                        </div>
+                        {!isPublished && (<div className={styles.iconContainer} onClick={handlePublishSong}>
+                            <img src={PublishIcon} alt="Опубликовать" />
+                            <span className={styles.iconLabel}>Опубликовать</span>
+                        </div>
+                        )}
+                    </div>
 
                     <h2 className={styles.h2text}>Редактирование текста песни</h2>
                     <button className={styles.addButton} onClick={() => handleAddLine(0)}>

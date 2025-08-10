@@ -115,3 +115,27 @@
   font-size: 1rem;
   box-sizing: border-box;
 }
+
+.iconRow {
+    display: flex;
+    justify-content: center;
+    gap: 100px;
+    margin: 10px 0;
+}
+
+.iconContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.iconContainer img {
+    width: 35px;
+    height: 35px;
+}
+
+.iconLabel {
+    font-size: 12px;
+    margin-top: 4px;
+}
