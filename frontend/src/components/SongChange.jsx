@@ -25,10 +25,14 @@ function SongChange({ song, onClick }) {
 
     return (
         <div className={styles.songContainer} onClick={handleClick}>
-            <div>
-                <p className={styles.songTitle}>{song.title}</p>
-                <p className={styles.songArtist}>{song.artist}</p>
-            </div>
+            {song.original_title ? (
+                    <p className={styles.centeredTitle}>{song.title}</p>
+
+                ) : (
+                        <div>
+                            <p className={styles.songTitle}>{song.title}</p>
+                            <p className={styles.songArtist}>{song.artist}</p>
+                        </div>)}
             
             { song.count > 1 ? (
                     <span className={styles.versionCount}>{song.count}</span>

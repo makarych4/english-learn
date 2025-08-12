@@ -7,6 +7,8 @@
   display: flex; /* Включаем Flexbox */
   justify-content: space-between; /* Распределяем пространство МЕЖДУ элементами */
   align-items: center; /* Выравниваем элементы по центру по вертикали */
+
+  min-height: 38px;
 }
 
 .songContainer:hover {
@@ -38,5 +40,10 @@
   margin: 0;
 }
 
-
+.centeredTitle {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #111;
+  margin: 0; /* Убираем все отступы */
+}
   

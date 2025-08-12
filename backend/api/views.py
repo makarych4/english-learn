@@ -25,6 +25,14 @@ from django.db.models import Count, Max, Subquery, OuterRef, CharField, Case, Wh
 class BaseSongListView:
     pagination_class = SongPagination
 
+    def _is_default_flat_list_view(self):
+        """
+        Этот метод предназначен для переопределения в дочерних классах.
+        По умолчанию он всегда возвращает False, чтобы не влиять
+        на стандартное поведение.
+        """
+        return False
+
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return SongSerializer
@@ -32,6 +40,10 @@ class BaseSongListView:
         artist_group = self.request.query_params.get("artist_group", "") == "true"
         selected_artist = self.request.query_params.get("selected_artist", "").strip().lower()
         selected_title = self.request.query_params.get("selected_title", "").strip().lower()
+        
+        if self._is_default_flat_list_view():
+            # ...возвращаем сериализатор для "плоского" списка.
+            return SongSerializer
         
         if selected_artist and selected_title:
             return SongVersionSerializer
@@ -72,6 +84,9 @@ class BaseSongListView:
         selected_title = self.request.query_params.get("selected_title", "").strip().lower()
 
         queryset = self.get_base_queryset()
+
+        if self._is_default_flat_list_view():
+            return queryset
 
         if search_type == "all_songs_search":
             queryset = queryset
@@ -176,11 +191,11 @@ class BaseSongListView:
                             default=None,
                             output_field=IntegerField()
                         ),
-                        is_published=Case(
-                            When(count=1, then='is_published'),
-                            default=None,
-                            output_field=BooleanField()
-                        ),
+                        # is_published=Case(
+                        #     When(count=1, then='is_published'),
+                        #     default=None,
+                        #     output_field=BooleanField()
+                        # ),
                         artist=Subquery(most_common_artist, output_field=CharField()),
                         title=Subquery(most_common_title, output_field=CharField()),
                     )
@@ -258,11 +273,11 @@ class BaseSongListView:
                     default=None,
                     output_field=IntegerField()
                 ),
-                is_published=Case(
-                            When(count=1, then='is_published'),
-                            default=None,
-                            output_field=BooleanField()
-                        ),
+                # is_published=Case(
+                #             When(count=1, then='is_published'),
+                #             default=None,
+                #             output_field=BooleanField()
+                #         ),
                 artist=Subquery(most_common_artist_in_group, output_field=CharField()),
                 title=Subquery(most_common_title_in_group, output_field=CharField())
             )
@@ -290,6 +305,26 @@ class SongListUserCreate(BaseSongListView, generics.ListCreateAPIView):
             serializer.save(user=self.request.user)
         else:
             print(serializer.errors)
+    
+    def _is_default_flat_list_view(self):
+        """
+        Проверяет, соответствует ли запрос условиям для отображения
+        "плоского" списка песен пользователя.
+        """
+        # Получаем параметры запроса
+        search_type = self.request.query_params.get("search_type", "all_songs_search")
+        query = self.request.query_params.get("query", "").strip()
+        artist_group = self.request.query_params.get("artist_group", "") == "true"
+        selected_artist = self.request.query_params.get("selected_artist", "").strip()
+        selected_title = self.request.query_params.get("selected_title", "").strip()
+
+        return (
+            search_type == "all_songs_search" and
+            not query and
+            not artist_group and
+            not selected_artist and
+            not selected_title
+        )
 
 
 """Получение списка песен для общего просмотра"""

@@ -17,6 +17,7 @@ function SongLearn() {
     const [songData, setSongData] = useState("")
     const [loading, setLoading] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
+    const [youtubeError, setYoutubeError] = useState(false);
     const { songId } = useParams();
 
     const navigate = useNavigate();
@@ -24,6 +25,8 @@ function SongLearn() {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
+            setYoutubeError(false); 
+            
             try {
                 // 1. Сначала определяем, является ли пользователь владельцем
                 const ownerStatus = await checkOwnership(songId);
@@ -37,7 +40,6 @@ function SongLearn() {
                 const songUrl = ownerStatus
                     ? `/api/songs/${songId}/`
                     : `/api/songs/public/${songId}/`;
-
                 // 3. Выполняем запросы параллельно для скорости
                 const [lyricsResponse, songResponse] = await Promise.all([
                     api.get(lyricsUrl),
@@ -47,6 +49,7 @@ function SongLearn() {
                 // 4. Устанавливаем данные
                 setLyrics(lyricsResponse.data);
                 setSongData(songResponse.data);
+                
 
             } catch (error) {
                 // Обрабатываем ошибку, если любой из запросов не удался
@@ -102,6 +105,10 @@ function SongLearn() {
         }
     };
 
+    const handlePlayerError = () => {
+    setYoutubeError(true);
+  };
+
     return (
         <div className={styles.pageContainer}>
             {loading ? (
@@ -135,7 +142,7 @@ function SongLearn() {
                         ))}
                     </div>
 
-                    {(songData.youtube_id != "") && (<YouTubePlayer videoId={songData.youtube_id} />)}     
+                    {songData.youtube_id && !youtubeError && (<YouTubePlayer videoId={songData.youtube_id} />)}     
                 </>
             )}
             <BottomNavigation active="search" />

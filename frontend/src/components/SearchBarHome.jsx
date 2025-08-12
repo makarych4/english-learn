@@ -43,6 +43,7 @@ function SearchBar() {
 
             api.get("/api/songs/", { params })
                 .then((res) => {
+                    console.log("Ответ от сервера:", res);
                     setSongs(res.data.results);
                     setTotalPages(res.data.count ? Math.ceil(res.data.count / 10) : 0);
                 })

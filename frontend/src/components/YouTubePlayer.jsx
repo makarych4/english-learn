@@ -1,15 +1,27 @@
 // YouTubePlayer.jsx
 
-import React, { useState, useRef } from 'react'; // 1. Импортируем useRef
+import React, { useState, useRef, useEffect  } from 'react'; // 1. Импортируем useRef
 import YouTube from 'react-youtube';
 import playIcon from '../assets/play.svg';
 import closeIcon from '../assets/close.svg';
 import chevronIcon from '../assets/chevron.svg';
 import styles from '../styles/YouTubePlayer.module.css';
 
+const isValidYouTubeId = (id) => {
+    if (!id || typeof id !== 'string') {
+      return false;
+    }
+    // Регулярное выражение для проверки стандартного YouTube ID
+    const regex = /^[a-zA-Z0-9_-]{11}$/;
+    return regex.test(id);
+  };
+
 const YouTubePlayer = ({ videoId }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFixed, setIsFixed] = useState(true);
+  const isIdValid = isValidYouTubeId(videoId);
+
+  
   
   // 2. Создаем ref для хранения экземпляра плеера
   const playerRef = useRef(null);
@@ -59,7 +71,7 @@ const YouTubePlayer = ({ videoId }) => {
   return (
     <div className={styles.container}>
       {/* Кнопка Play */}
-      {!isPlaying && (
+      {!isPlaying && isIdValid && (
         <button className={styles.playButton} onClick={handlePlay}>
           <img src={playIcon} alt="Play Video" className={styles.playIcon} />
         </button>
@@ -93,7 +105,8 @@ const YouTubePlayer = ({ videoId }) => {
           className={`${styles.videoWrapper} ${!isFixed ? styles.collapsedVideo : ''}`}
           videoId={videoId}
           opts={opts}
-          onReady={onReady} />
+          onReady={onReady}/>
+          
       </div> 
     </div>
   );
