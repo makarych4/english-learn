@@ -59,19 +59,19 @@ function BottomNavigation({ active }) {
       <div className={styles.iconContainer}>
         <Link to="/" className={active === "home" ? styles.active : ""}>
           <img src={homeIcon} alt="Home" />
-          <span>Home</span>
+          <span>Главная</span>
         </Link>
       </div>
       <div className={styles.iconContainer}>
         <Link to="/search" className={active === "search" ? styles.active : ""}>
           <img src={searchIcon} alt="Search" />
-          <span>Search</span>
+          <span>Поиск</span>
         </Link>
       </div>
       <div className={styles.iconContainer}>
         <Link to="/profile" className={active === "profile" ? styles.active : ""}>
           <img src={profileIcon} alt="Profile" />
-          <span>Profile</span>
+          <span>Профиль</span>
         </Link>
       </div>
     </nav>
