@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom"; // Главный инструмент
 import Pagination from "./Pagination";
 import api from "../api";
@@ -9,7 +9,6 @@ import styles from "../styles/SearchBar.module.css";
 function SearchBar() {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // --- ШАГ 1: URL - единственный источник правды ---
     // Читаем все параметры из URL. Если их нет, ставим значения по умолчанию.
     const query = searchParams.get("query") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);

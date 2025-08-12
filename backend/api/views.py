@@ -74,7 +74,7 @@ class BaseSongListView:
         queryset = self.get_base_queryset()
 
         if search_type == "all_songs_search":
-            queryset = queryset.order_by('artist', 'title')
+            queryset = queryset
 
         elif search_type == "reduce_songs_search":
             """
@@ -276,14 +276,14 @@ class BaseSongListView:
             ).order_by('-relevance')
         else:
             # Во всех остальных случаях (включая пустой reduce_songs_search) сортируем по алфавиту
-            return grouped_queryset.order_by("artist", "title")
+            return grouped_queryset
 
 """Создание песни и вывод песен пользователя"""
 class SongListUserCreate(BaseSongListView, generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_base_queryset(self):
-        return Song.objects.filter(user=self.request.user)
+        return Song.objects.filter(user=self.request.user).order_by('-id')
 
     def perform_create(self, serializer):
         if serializer.is_valid():
@@ -297,7 +297,7 @@ class SongListPublic(BaseSongListView, generics.ListAPIView):
     permission_classes = [AllowAny]
     
     def get_base_queryset(self):
-        return Song.objects.filter(is_published=True)
+        return Song.objects.filter(is_published=True).order_by('artist', 'title')
     
 """Получение данных песни для редактирования"""
 class SongRetrieve(generics.RetrieveUpdateAPIView):

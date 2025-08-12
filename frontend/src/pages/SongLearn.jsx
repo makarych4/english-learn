@@ -104,39 +104,41 @@ function SongLearn() {
 
     return (
         <div className={styles.pageContainer}>
-            <div className={styles.iconRow}>
-                <div className={styles.iconContainer} onClick={handleEditOrClone}>
-                    <img src={EditIcon} alt="Редактировать" />
-                    <span className={styles.iconLabel}>Редактировать</span>
-                </div>
-            </div>
-            <div className={styles.songHint}>
-                <h1 className={styles.selectedTitle}>
-                    {songData.title}
-                </h1>
-                <h2 className={styles.selectedArtist}>
-                    {songData.artist}
-                </h2>
-            </div>
-
             {loading ? (
                 <LoadingIndicator />
             ) : (
-                <div className={styles.container}>
-                    {lyrics.map((line, index) => (
-                        <div key={line.id}>
-                            <SongLyricsLine
-                            line={line}
-                        />
-                            {index < lyrics.length - 1 && <hr/>}
+                <>
+                    <div className={styles.iconRow}>
+                        <div className={styles.iconContainer} onClick={handleEditOrClone}>
+                            <img src={EditIcon} alt="Редактировать" />
+                            <span className={styles.iconLabel}>Редактировать</span>
                         </div>
-                        
-                    ))}
-                </div>
+                    </div>
+                    <div className={styles.songHint}>
+                        <h1 className={styles.selectedTitle}>
+                            {songData.title}
+                        </h1>
+                        <h2 className={styles.selectedArtist}>
+                            {songData.artist}
+                        </h2>
+                    </div>
+
+                    <div className={styles.container}>
+                        {lyrics.map((line, index) => (
+                            <div key={line.id}>
+                                <SongLyricsLine
+                                line={line}
+                            />
+                                {index < lyrics.length - 1 && <hr/>}
+                            </div>
+                            
+                        ))}
+                    </div>
+
+                    {(songData.youtube_id != "") && (<YouTubePlayer videoId={songData.youtube_id} />)}     
+                </>
             )}
-            <YouTubePlayer videoId={songData.youtube_id} />
             <BottomNavigation active="search" />
-            
         </div>
     );
 }

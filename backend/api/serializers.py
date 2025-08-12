@@ -25,23 +25,28 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True}
         }
 
+    def validate_username(self, value):
+        """
+        Проверка, что имя пользователя (username) уникально.
+        """
+        if User.objects.filter(username__iexact=value).exists():
+            raise serializers.ValidationError("Пользователь с таким именем уже существует.")
+        return value
+
+    def validate_email(self, value):
+        """
+        Проверка, что почта (email) уникальна.
+        """
+        # Проверяем без учета регистра, чтобы "Test@email.com" и "test@email.com" считались одинаковыми
+        if User.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Пользователь с такой почтой уже существует.")
+        return value
+    
     def create(self, validated_data):
         # Шаг 1: Создаем и сохраняем User, получаем объект с id
         user = User.objects.create_user(**validated_data) 
         # Шаг 2: Создаем и сохраняем Profile, используя user с уже существующим id
         Profile.objects.create(user=user)
-        return user
-
-
-
-    def validate_email(self, value):
-        """ Проверка, что email уникален """
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Пользователь с такой почтой уже существует")
-        return value
-        
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
         return user
     
 class SongSerializer(serializers.ModelSerializer):

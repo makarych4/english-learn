@@ -50,3 +50,8 @@
   font-size: 1rem;
   cursor: pointer;
 }
+
+.loadingBlock
+{
+  padding-top: 24px;
+}

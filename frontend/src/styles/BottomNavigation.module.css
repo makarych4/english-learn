@@ -17,6 +17,10 @@ body {
   border-top: 1px solid #404040;
 }
 
+.hidden {
+  display: none;
+}
+
 .iconContainer {
   flex: 1;
   height: 100%;
@@ -78,5 +82,11 @@ body {
 
   body {
     padding-bottom: 0;
+  }
+} */
+
+/* @media (max-height: 600px) {
+  .bottomNav {
+    display: none;
   }
 } */

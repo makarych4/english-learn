@@ -11,7 +11,7 @@
   cursor: pointer;
 
   position: fixed;
-  bottom: 70px;
+  bottom: 130px;
   right: 20px;
 }
 
@@ -20,28 +20,16 @@
   transition: transform 0.2s;
 }
 
-
-
-
 .videoWrapper iframe {
   width: 100%;
   height: 100%;
   border-radius: 20px;
 }
 
-
-
-
-
-
-
-
-
-
 .videoContainer {
   position: relative;
   width: 100%;
-  max-width: 900px;
+  /* max-width: 900px; */
   margin: 0;
 }
 
@@ -59,4 +47,63 @@
 .closeIcon {
   width: 40px;
   filter: invert(1);
+}
+
+/* Chevron button */
+.chevronButton {
+  position: fixed;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+  transition: transform 0.3s ease;
+}
+
+.chevronFixed {
+  position: fixed;
+  bottom: 210px; /* Как у playButton */
+  right: -11px;  /* Как у playButton */
+}
+
+.chevronUnfixed {
+  position: fixed;
+  bottom: 60px; /* или подогнать под свернутое видео */
+  right: -11px;
+}
+
+.chevronIcon {
+  width: 50px;
+  padding: 8px;
+  transition: transform 0.3s ease;
+}
+
+.rotated .chevronIcon {
+  transform: rotate(180deg);
+}
+
+.fixed {
+  position: fixed;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
+
+.hidden {
+  opacity: 0;
+  visibility: hidden;
+  /* Важно, чтобы скрытый элемент не перехватывал клики */
+  pointer-events: none; 
+}
+
+.collapsedVideo {
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed; /* или absolute, чтобы не занимать место */
+  bottom: 50px; /* можно подогнать позицию, чтобы не мешало */
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.3s ease;
 }

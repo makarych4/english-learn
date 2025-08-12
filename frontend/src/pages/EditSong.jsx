@@ -21,6 +21,9 @@ function EditSong() {
     const [loading, setLoading] = useState(true);
     const [isVip, setIsVip] = useState(false);
     const { songId } = useParams();
+
+    const [youtubeUrl, setYoutubeUrl] = useState("");
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -61,6 +64,44 @@ function EditSong() {
             })
             .catch((err) => alert(err))
             .finally(() => setLoading(false));
+    };
+
+    const handleParseYoutubeUrl = () => {
+        if (!youtubeUrl) {
+            alert("Пожалуйста, вставьте ссылку.");
+            return;
+        }
+
+        let videoId = null;
+        try {
+            const url = new URL(youtubeUrl);
+            // Для music.youtube.com и youtube.com ID находится в параметре 'v'
+            if (url.hostname.includes("youtube.com")) {
+                videoId = url.searchParams.get('v');
+            }
+        } catch (error) {
+            // Если new URL() не сработал, попробуем регулярное выражение
+            // для коротких ссылок или ссылок без протокола.
+            console.warn("Не удалось распарсить URL стандартным способом, пробуем regex.");
+        }
+
+        // Запасной вариант с регулярным выражением для более сложных случаев
+        if (!videoId) {
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const match = youtubeUrl.match(regex);
+            if (match && match[1]) {
+                videoId = match[1];
+            }
+        }
+
+        if (videoId) {
+            // Если ID найден, обновляем состояние и очищаем поле ввода URL
+            setYoutubeId(videoId);
+            setYoutubeUrl(""); // Очищаем инпут после успешного парсинга
+            alert(`ID видео успешно установлен: ${videoId}`);
+        } else {
+            alert("Не удалось извлечь ID видео из ссылки. Проверьте ссылку и попробуйте снова.");
+        }
     };
 
     const handleDeleteSong = async () => {
@@ -234,9 +275,7 @@ function EditSong() {
 
 
     return (
-
         <div className={styles.pageContainer}>
-
             {loading ? (
                 <LoadingIndicator />
             ) : (
@@ -269,17 +308,36 @@ function EditSong() {
                                 className={styles.metaInput}
                             />
                         </label>
+                        <label className={styles.metaLabel}>
+                            <input
+                                type="text"
+                                value={youtubeUrl}
+                                onChange={(e) => setYoutubeUrl(e.target.value)}
+                                placeholder="Ссылка на песню на YouTube"
+                                className={styles.metaInput}
+                            />
+                        </label>
+                        <button onClick={handleParseYoutubeUrl} className={styles.addButton}>
+                            Извлечь ID
+                        </button>
                     </div>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
 
                     {isVip && (
+                    <>
                     <div className={styles.buttonGroup}>
                         <button className={styles.addButton} onClick={handleFillLyrics}>
                             Заполнить текст с нуля
                         </button>
+                        <div>&nbsp;</div>
                         <button className={styles.addButton} onClick={handleFillTranslations}>
                             Заполнить пустые строки перевода
                         </button>
                     </div>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
+                    </>
                     )}
 
                     <div className={styles.iconRow}>
@@ -323,7 +381,6 @@ function EditSong() {
                     )}
                 </>
             )}
-
             <BottomNavigation active="home" />
         </div>
     );
