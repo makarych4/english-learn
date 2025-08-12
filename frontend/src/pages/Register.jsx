@@ -29,26 +29,27 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!username || !email || !password) {
+        if (!username || !password) {// || !email
             alert("Все поля должны быть заполнены");
             return;
         }
 
         if (!validateUsername(username)) {
-            alert("Имя пользователя содержит недопустимые символы. Разрешены только буквы, цифры и символы @/./+/-/_");
+            alert("Имя пользователя содержит недопустимые символы. Разрешены только латинские буквы, цифры и символы @/./+/-/_");
             return;
         }
 
-        if (!validateEmail(email)) {
-            alert("Введите корректный email");
-            return;
-        }
+        // if (!validateEmail(email)) {
+        //     alert("Введите корректный email");
+        //     return;
+        // }
 
         setLoading(true);
 
         try {
             const response = await api.post(route, { username, email, password })
             if (response.status === 201) { // 201 - статус успешного создания ресурса
+                alert("Вы успешно зарегистрировались!");
                 navigate("/login");
             } else {
                 alert("Ошибка при регистрации");
@@ -101,13 +102,13 @@ function Register() {
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="Имя пользователя"
                 />
-                <input
+                {/* <input
                     className={styles.formInput}
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Почта"
-                />
+                /> */}
                 <input
                     className={styles.formInput}
                     type="password"

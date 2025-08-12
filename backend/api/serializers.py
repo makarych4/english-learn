@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import Song, SongLyrics, Profile
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db import models
+from django.contrib.auth.password_validation import validate_password
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -33,14 +34,14 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Пользователь с таким именем уже существует.")
         return value
 
-    def validate_email(self, value):
-        """
-        Проверка, что почта (email) уникальна.
-        """
-        # Проверяем без учета регистра, чтобы "Test@email.com" и "test@email.com" считались одинаковыми
-        if User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("Пользователь с такой почтой уже существует.")
-        return value
+    # def validate_email(self, value):
+    #     """
+    #     Проверка, что почта (email) уникальна.
+    #     """
+    #     # Проверяем без учета регистра, чтобы "Test@email.com" и "test@email.com" считались одинаковыми
+    #     if User.objects.filter(email__iexact=value).exists():
+    #         raise serializers.ValidationError("Пользователь с такой почтой уже существует.")
+    #     return value
     
     def create(self, validated_data):
         # Шаг 1: Создаем и сохраняем User, получаем объект с id
@@ -124,3 +125,50 @@ class SongVersionSerializer(serializers.ModelSerializer):
         # Главный трюк: указываем, какой класс использовать для списков
         list_serializer_class = SongVersionListSerializer
 
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Сериализатор для смены пароля.
+    """
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password1 = serializers.CharField(required=True, write_only=True)
+    new_password2 = serializers.CharField(required=True, write_only=True)
+
+    def validate_old_password(self, value):
+        """
+        Проверяет, что старый пароль, введенный пользователем, верен.
+        """
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Старый пароль введен неверно.")
+        return value
+
+    def validate(self, data):
+        """
+        Проверяет, что два новых пароля совпадают.
+        """
+        if data['new_password1'] != data['new_password2']:
+            raise serializers.ValidationError({"new_password2": "Пароли не совпадают."})
+        
+        # Проверяем новый пароль с помощью встроенных валидаторов Django
+        try:
+            validate_password(data['new_password1'], self.context['request'].user)
+        except serializers.ValidationError as e:
+            # Перехватываем и переформатируем ошибку валидации пароля
+            raise serializers.ValidationError({"new_password1": list(e.get_codes())})
+            
+        return data
+
+    def save(self, **kwargs):
+        """
+        Сохраняет новый пароль для пользователя.
+        """
+        password = self.validated_data['new_password1']
+        user = self.context['request'].user
+        user.set_password(password)
+        user.save()
+        return user
+    
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username'] # Разрешаем менять только username

@@ -22,6 +22,7 @@ urlpatterns = [
 
 
     path('user/', views.CurrentUserView.as_view(), name='current-user'),
+    path('change-password/', views.ChangePasswordView.as_view(), name='change-password'),
 
     path('songs/clone/<int:original_song_id>/', views.CloneSongView.as_view(), name='clone-song'),
     path("song-ownership/<int:pk>/", views.SongOwnershipCheck.as_view(), name="song-ownership"),

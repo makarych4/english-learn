@@ -1,19 +1,151 @@
 .pageContainer {
-  padding: 16px;
-  font-family: sans-serif;
-  position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+
+    font-family: sans-serif;
 }
 
+.profileCard {
+    background-color: #2a2a2a;
+    padding: 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.usernameTitle {
+    text-align: center;
+    margin: 0 0 10px 0;
+    color: #fff;
+    font-size: 1.5rem;
+}
+
+.infoBlock {
+    background-color: #333;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.infoTextContainer {
+    display: flex;
+    flex-direction: column; /* Главное свойство: располагаем элементы в столбик */
+    align-items: flex-start; /* Выравниваем по левому краю */
+    gap: 4px; /* Небольшой отступ между строками */
+    flex-grow: 1;
+    overflow: hidden; /* Важно для работы троеточия */
+}
+
+.infoLabel {
+    font-size: 1rem;
+    color: #ccc;
+}
+
+.infoValue {
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+.editButton, .actionButton {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+    flex-shrink: 0; /* Чтобы кнопка не сжималась */
+}
+
+.editButton:hover, .actionButton:hover {
+    background-color: #0056b3;
+}
+
+.actionButton {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+}
+
+/* Стили для форм */
+.editForm, .passwordForm {
+    background-color: #333;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.formTitle {
+    font-size: 1rem;
+    margin: 0 0 5px 0;
+    text-align: center;
+    color: #fff;
+}
+
+.inputField {
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background-color: #444;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.formActions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.saveButton, .cancelButton {
+    flex: 1;
+    padding: 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.saveButton {
+    background-color: #28a745; /* Зеленый */
+    color: white;
+}
+
+.saveButton:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.cancelButton {
+    background-color: #6c757d; /* Серый */
+    color: white;
+}
+
+/* Кнопка выхода */
 .logoutButton {
-  width: 100%;
-  max-width: 400px;
-  margin: 2rem auto;
-  display: block;
-  padding: 0.75rem;
-  background-color: #f44336;
-  color: #fff;
-  font-size: 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+    background-color: #a02d39;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 450px;
+    font-size: 1rem;
 }

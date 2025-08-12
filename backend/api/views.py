@@ -15,6 +15,7 @@ from .pagination import SongPagination, WordFrequencyPagination
 from django.contrib.postgres.search import TrigramWordSimilarity, TrigramSimilarity
 from django.db.models import F, Q, Count, OuterRef, Subquery, CharField, Min, Max
 from django.db.models.functions import Lower
+from .serializers import ChangePasswordSerializer
 
 
 
@@ -479,6 +480,7 @@ class WordFrequencyCustomAPIView(APIView):
         result = [{"word": w, "frequency": counter.get(w, 0)} for w in words]
         return Response(result)
     
+from .serializers import UserUpdateSerializer
 
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
@@ -493,10 +495,18 @@ class CurrentUserView(APIView):
             "is_superuser": user.is_superuser,
             "is_vip": is_vip_status,
         })
-
+    
+    def patch(self, request):
+        user = request.user
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 from django.shortcuts import get_object_or_404
 
+"""Создание копии существующей песни"""
 class CloneSongView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -537,6 +547,7 @@ class CloneSongView(APIView):
         serializer = SongSerializer(new_song)
         return Response(serializer.data, status=201) # 201 Created
     
+"""Проверка владеет ли пользователь песней"""
 class SongOwnershipCheck(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -550,3 +561,18 @@ class SongOwnershipCheck(APIView):
         # Проверка, что песня принадлежит текущему пользователю
         is_owner = (song.user == request.user)
         return Response({"is_owner": is_owner}, status=status.HTTP_200_OK)
+    
+
+    
+class ChangePasswordView(generics.GenericAPIView):
+    """
+    Эндпоинт для смены пароля аутентифицированного пользователя.
+    """
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"detail": "Пароль успешно изменен."}, status=status.HTTP_200_OK)
