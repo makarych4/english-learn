@@ -66,3 +66,7 @@ input[type="search"]::-webkit-search-cancel-button {
   /* Делаем курсор-указатель при наведении на крестик */
   cursor: pointer;
 }
+
+body.page-padding .fixed-class {
+  transform: translateY(50px);
+}

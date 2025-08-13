@@ -367,7 +367,7 @@ function EditSong() {
                         />
                     ))}
 
-                    <button className={styles.saveButton} onClick={handleSave}>Сохранить</button>
+                    <button className={`${styles.saveButton} fixed-class`} onClick={handleSave}>Сохранить</button>
                     {confirmDeleteLineId !== null && (
                         <div className={styles.overlay}>
                             <div className={styles.confirmBox}>

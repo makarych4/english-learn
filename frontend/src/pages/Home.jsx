@@ -40,7 +40,7 @@ function Home() {
 
     return (
         <div className={styles.pageContainer}>
-            <button className={styles.chartButton} onClick={() => setShowChart(true)}>График</button>
+            <button className={`${styles.chartButton} fixed-class`} onClick={() => setShowChart(true)}>График</button>
 
 
             <h2>Мои Песни</h2>
@@ -92,7 +92,7 @@ function Home() {
                 </div>
             )}
 
-            <button className={styles.fab} onClick={() => setShowForm(true)}>+</button>
+            <button className={`${styles.fab} fixed-class`} onClick={() => setShowForm(true)}>+</button>
             <BottomNavigation active="home" />
         </div>
     );
