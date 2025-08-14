@@ -59,15 +59,19 @@ function BottomNavigation({ active, onActiveClick }) {
   };
 
   const handleSearchClick = (e) => {
-    // Проверяем, что мы уже на странице поиска
-    if (active === 'search') {
-      e.preventDefault(); // Отменяем переход
+    // 1. Проверяем, находимся ли мы уже на главной странице поиска
+    if (location.pathname === '/search') {
+      // Если да, то отменяем переход и фокусируемся на инпуте
+      e.preventDefault();
       const input = document.getElementById('mainSearchInput');
       if (input) {
         input.scrollIntoView({ behavior: 'smooth', block: 'center' });
         input.focus();
       }
     }
+    // 2. Если мы на ЛЮБОЙ другой странице (например, /song/123),
+    // то этот `if` не сработает, `e.preventDefault()` не вызовется,
+    // и <Link to="/search"> просто выполнит свою работу - перейдет на /search.
   };
 
   return (
@@ -87,7 +91,7 @@ function BottomNavigation({ active, onActiveClick }) {
         <Link 
           to="/search" 
           className={active === 'search' ? styles.active : ''}
-          onClick={(e) => handleLinkClick(e, 'search', '/search')}
+          onClick={handleSearchClick}
         >
           <img src={searchIcon} alt="Search" />
           <span>Поиск</span>
