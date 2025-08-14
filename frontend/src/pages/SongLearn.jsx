@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { href, useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom"; 
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import SongLyricsLine from "../components/SongLyricsLine";
@@ -19,6 +20,8 @@ function SongLearn() {
     const [isOwner, setIsOwner] = useState(false);
     const [youtubeError, setYoutubeError] = useState(false);
     const { songId } = useParams();
+
+    const location = useLocation();
 
     const navigate = useNavigate();
 
@@ -105,9 +108,8 @@ function SongLearn() {
         }
     };
 
-    const handlePlayerError = () => {
-    setYoutubeError(true);
-  };
+    // 3. Извлекаем 'from' из state. Если его нет, по умолчанию ставим 'search'.
+    const activeTab = location.state?.from || 'search';
 
     return (
         <div className={styles.pageContainer}>
@@ -145,7 +147,7 @@ function SongLearn() {
                     {songData.youtube_id && !youtubeError && (<YouTubePlayer videoId={songData.youtube_id} />)}     
                 </>
             )}
-            <BottomNavigation active="search" />
+            <BottomNavigation active={activeTab} />
         </div>
     );
 }

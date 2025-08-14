@@ -57,7 +57,23 @@ function SearchBar() {
         const timeoutId = setTimeout(() => {
             // Если значение в инпуте отличается от того, что в URL, обновляем URL
             if (inputValue !== query) {
-                updateSearchParams({ query: inputValue, page: 1 });
+                const trimmed = inputValue.trim();
+
+                if (trimmed && selectedArtist && selectedTitle) {
+                    // Если есть текст в запросе — сбрасываем выбранного артиста и песню
+                    updateSearchParams({
+                        query: inputValue,
+                        page: 1,
+                        selectedArtist: null,
+                        selectedTitle: null,
+                    });
+                } else {
+                    // Если запрос пустой — просто обновляем query
+                    updateSearchParams({
+                        query: inputValue,
+                        page: 1,
+                    });
+                }
             }
         }, 800); // Задержка 800мс
 
@@ -125,6 +141,7 @@ function SearchBar() {
     return (
         <div className={styles.searchBar}>
             <input
+                id="mainSearchInput"
                 className={styles.searchInput}
                 value={inputValue}
                 type="search"

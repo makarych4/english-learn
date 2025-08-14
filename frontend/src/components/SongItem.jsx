@@ -1,8 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styles from "../styles/SongItem.module.css";
 
 function SongItem({ song, onClick }) {
     const navigate = useNavigate();
+    const location = useLocation(); 
     
     const handleClick = () => {
         // Сценарий 1: Песня - группа с одной версией (у нее есть и count=1, и id)
@@ -19,7 +20,8 @@ function SongItem({ song, onClick }) {
         
         // Сценарий 3: Это конечная песня ("Версия 1")
         if (song.id) {
-            navigate(`/song/${song.id}`);
+            const fromTab = location.pathname.startsWith('/search') ? 'search' : 'home';
+            navigate(`/song/${song.id}`, { state: { from: fromTab } });
         }
     };
 

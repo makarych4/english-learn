@@ -126,6 +126,10 @@ function EditSong() {
     };
 
     const handlePublishSong = async () => {
+        if (!validateFields()) {
+            return;
+        }
+        
         const isAuth = await ensureAuth(navigate);
         if (!isAuth) return;
 
@@ -195,6 +199,10 @@ function EditSong() {
 
 
     const handleSave = async () => {
+
+        if (!validateFields()) {
+            return;
+        }
         setLoading(true);
 
         const isAuth = await ensureAuth(navigate);
@@ -220,6 +228,10 @@ function EditSong() {
     };
 
     const handleFillLyrics = async () => {
+        if (!validateFields()) {
+            return;
+        }
+
         setLoading(true);
 
         const isAuth = await ensureAuth(navigate);
@@ -250,6 +262,10 @@ function EditSong() {
     };
 
     const handleFillTranslations = async () => {
+        if (!validateFields()) {
+            return;
+        }
+        
         setLoading(true);
 
         const isAuth = await ensureAuth(navigate);
@@ -273,6 +289,20 @@ function EditSong() {
         }
     };
 
+    const validateFields = () => {
+        // .trim() убирает пробелы по краям, чтобы пользователь
+        // не мог сохранить поле, состоящее только из пробелов.
+        if (!title.trim()) {
+            alert("Пожалуйста, укажите название песни.");
+            return false;
+        }
+        if (!artist.trim()) {
+            alert("Пожалуйста, укажите исполнителя.");
+            return false;
+        }
+        return true;
+    };
+
 
     return (
         <div className={styles.pageContainer}>
@@ -288,6 +318,7 @@ function EditSong() {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 className={styles.metaInput}
+                                
                             />
                         </label>
                         <label className={styles.metaLabel}>
@@ -297,6 +328,7 @@ function EditSong() {
                                 value={artist}
                                 onChange={(e) => setArtist(e.target.value)}
                                 className={styles.metaInput}
+                                
                             />
                         </label>
                         <label className={styles.metaLabel}>

@@ -1,6 +1,10 @@
   body {
     font-family: sans-serif;
     -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
   }
 
 input[type="text"]:focus,
@@ -68,5 +72,6 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 body.page-padding .fixed-class {
-  transform: translateY(50px);
+  display: none;
+  /* transform: translateY(50px); */
 }

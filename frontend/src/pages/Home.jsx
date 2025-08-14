@@ -16,7 +16,22 @@ function Home() {
     const navigate = useNavigate();
 
     useEffect(() => {
-    }, []);
+        // Проверяем, должен ли быть показан оверлей
+        const isOverlayVisible = showForm || showChart;
+
+        if (isOverlayVisible) {
+            // 1. Блокируем скролл на <body>
+            document.body.style.overflow = 'hidden';
+            // 2. Прокручиваем окно наверх
+            window.scrollTo(0, 0);
+            document.body.style.overflow = 'auto';
+        }
+
+        // Функция очистки, которая вернет скролл, если пользователь уйдет со страницы
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, [showForm, showChart]); // Этот эффект будет срабатывать при изменении видимости оверлеев
     
     const createSong = async (e) => {
         const isAuth = await ensureAuth(navigate);
@@ -39,14 +54,35 @@ function Home() {
     };
 
     return (
+        // Главный контейнер страницы
         <div className={styles.pageContainer}>
-            <button className={`${styles.chartButton} fixed-class`} onClick={() => setShowChart(true)}>График</button>
+            
+            {/* 
+              --- 1. КОНТЕЙНЕР ДЛЯ ОСНОВНОГО КОНТЕНТА ---
+              Этот блок будет виден, только если НЕ показан ни один оверлей.
+              Мы используем React Fragment (<>), чтобы не добавлять лишний div.
+            */}
+            {!showForm && !showChart && (
+                <>
+                    <button className={`${styles.chartButton} fixed-class`} onClick={() => setShowChart(true)}>
+                        График
+                    </button>
 
+                    <h2>Мои Песни</h2>
 
-            <h2>Мои Песни</h2>
+                    <SearchBarHome />
 
-            <SearchBarHome/>
+                    <button className={`${styles.fab} fixed-class`} onClick={() => setShowForm(true)}>
+                        +
+                    </button>
+                </>
+            )}
 
+            {/* 
+              --- 2. ОВЕРЛЕИ ТЕПЕРЬ НАХОДЯТСЯ ЗДЕСЬ ---
+              Они рендерятся на верхнем уровне и будут перекрывать
+              все, что было выше (кроме BottomNavigation).
+            */}
             {showForm && (
                 <div className={styles.overlay}>
                     <form onSubmit={createSong} className={styles.formContainer}>
@@ -77,12 +113,12 @@ function Home() {
                         />
 
                         <button type="submit" className={styles.createButton}>
-                                Создать
+                            Создать
                         </button>
-
                     </form>
                 </div>
             )}
+            
             {showChart && (
                 <div className={styles.overlay}>
                     <div className={styles.chartWrapper}>
@@ -91,8 +127,12 @@ function Home() {
                     </div>
                 </div>
             )}
-
-            <button className={`${styles.fab} fixed-class`} onClick={() => setShowForm(true)}>+</button>
+            
+            {/* 
+              --- 3. BOTTOM NAVIGATION ВСЕГДА ВИДЕН ---
+              Он находится вне всех условных рендерингов, 
+              поэтому будет отображаться всегда.
+            */}
             <BottomNavigation active="home" />
         </div>
     );

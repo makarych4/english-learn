@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import homeIcon from '../assets/home.svg';
 import searchIcon from '../assets/search.svg';
 import profileIcon from '../assets/profile.svg';
 import styles from '../styles/BottomNavigation.module.css';
 
-function BottomNavigation({ active }) {
+function BottomNavigation({ active, onActiveClick }) {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const initialArea = useRef(0);
 
@@ -43,24 +43,64 @@ function BottomNavigation({ active }) {
 
   const navClassName = `${styles.bottomNav} ${isKeyboardVisible ? styles.hidden : ''}`;
 
+  const location = useLocation();
+  const handleLinkClick = (e, tabName, destinationPath) => {
+    // Особое действие выполняется, только если:
+    // 1. Вкладка активна (active === tabName)
+    // 2. Передан специальный обработчик (onActiveClick)
+    // 3. Мы находимся ТОЧНО на той странице, куда ведет ссылка (location.pathname === destinationPath)
+    if (active === tabName && onActiveClick && location.pathname === destinationPath) {
+      e.preventDefault(); // Предотвращаем бесполезный переход
+      onActiveClick(tabName); // Вызываем особое действие (фокус на инпуте)
+    }
+    // Во ВСЕХ ОСТАЛЬНЫХ случаях Link будет работать как обычная ссылка.
+    // Если мы на /song/123, location.pathname НЕ РАВЕН '/search',
+    // поэтому `if` не сработает, и Link переведет нас на /search.
+  };
+
+  const handleSearchClick = (e) => {
+    // Проверяем, что мы уже на странице поиска
+    if (active === 'search') {
+      e.preventDefault(); // Отменяем переход
+      const input = document.getElementById('mainSearchInput');
+      if (input) {
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        input.focus();
+      }
+    }
+  };
+
   return (
     <nav className={navClassName}>
       <div className={styles.iconContainer}>
-        <Link to="/" className={active === 'home' ? styles.active : ''}>
+        <Link 
+          to="/" 
+          className={active === 'home' ? styles.active : ''}
+          onClick={(e) => handleLinkClick(e, 'home', '/')}
+        >
           <img src={homeIcon} alt="Home" />
-          <span>Home</span>
+          <span>Главная</span>
         </Link>
       </div>
       <div className={styles.iconContainer}>
-        <Link to="/search" className={active === 'search' ? styles.active : ''}>
+        {/* Передаем путь назначения в обработчик */}
+        <Link 
+          to="/search" 
+          className={active === 'search' ? styles.active : ''}
+          onClick={(e) => handleLinkClick(e, 'search', '/search')}
+        >
           <img src={searchIcon} alt="Search" />
-          <span>Search</span>
+          <span>Поиск</span>
         </Link>
       </div>
       <div className={styles.iconContainer}>
-        <Link to="/profile" className={active === 'profile' ? styles.active : ''}>
+        <Link 
+          to="/profile" 
+          className={active === 'profile' ? styles.active : ''}
+          onClick={(e) => handleLinkClick(e, 'profile', '/profile')}
+        >
           <img src={profileIcon} alt="Profile" />
-          <span>Profile</span>
+          <span>Профиль</span>
         </Link>
       </div>
     </nav>
