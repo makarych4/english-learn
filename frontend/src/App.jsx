@@ -5,6 +5,7 @@ import Register from "./pages/Register"
 import Home from "./pages/Home"
 import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
+import ProtectedRouteProfile from "./components/ProtectedRouteProfile"
 import EditSong from "./pages/EditSong";
 import ProtectedSongRoute from "./components/ProtectedSongRoute"
 import Profile from "./pages/Profile"
@@ -64,9 +65,9 @@ function App() {
         <Route
           path="/profile"
           element={
-            <ProtectedRoute>
+            <ProtectedRouteProfile>
               <Profile />
-            </ProtectedRoute>
+            </ProtectedRouteProfile>
           }
         />
         <Route path="*" element={<NotFound />}></Route>

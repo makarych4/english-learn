@@ -147,7 +147,7 @@ function SearchBar() {
                 value={inputValue}
                 type="search"
                 onChange={e => setInputValue(e.target.value)}
-                placeholder="Поиск..."
+                placeholder="Поиск по моим песням..."
             />
     
             <div className={styles.searchModeTabs}>

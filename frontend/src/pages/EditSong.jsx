@@ -19,6 +19,7 @@ function EditSong() {
     const [isPublished, SetisPublished] = useState("");
     const [confirmDeleteLineId, setConfirmDeleteLineId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [isVip, setIsVip] = useState(false);
     const { songId } = useParams();
 
@@ -203,10 +204,14 @@ function EditSong() {
         if (!validateFields()) {
             return;
         }
-        setLoading(true);
+        setIsSaving(true);
+        //setLoading(true);
 
         const isAuth = await ensureAuth(navigate);
-        if (!isAuth) return;
+        if (!isAuth) {
+            setIsSaving(false);
+            return;
+        }
 
         try {
             await api.patch(`/api/songs/${songId}/`, {
@@ -223,7 +228,8 @@ function EditSong() {
         } catch (err) {
             alert("Ошибка. Данные не изменены.");
         } finally {
-            setLoading(false);
+            setIsSaving(false);
+            //setLoading(false);
         }
     };
 
@@ -399,7 +405,12 @@ function EditSong() {
                         />
                     ))}
 
-                    <button className={`${styles.saveButton} fixed-class`} onClick={handleSave}>Сохранить</button>
+                    <button
+                        className={`${styles.saveButton} fixed-class`}
+                        onClick={handleSave}
+                        disabled={isSaving}>
+                        {isSaving ? "Сохранение..." : "Сохранить"}
+                    </button>
                     {confirmDeleteLineId !== null && (
                         <div className={styles.overlay}>
                             <div className={styles.confirmBox}>

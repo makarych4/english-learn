@@ -2,7 +2,7 @@
   padding: 16px;
   font-family: sans-serif;
   position: relative;
-  margin-bottom: 100px;
+  margin-bottom: 430px;
 }
 
 .buttonGroup {
@@ -28,6 +28,14 @@
   position: fixed;
   bottom: 100px;
   right: 24px;
+  transition: background-color 0.2s, opacity 0.2s;
+  min-width: 133px;
+  min-height: 45px;
+}
+
+.saveButton:disabled {
+  background-color: #5a6268; /* Темно-серый цвет */
+  cursor: not-allowed; /* Курсор "запрещено" */
 }
 
 .addButton {
