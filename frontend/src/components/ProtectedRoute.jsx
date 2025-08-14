@@ -53,7 +53,7 @@ function ProtectedRoute({ children }) {
         return <LoadingIndicator />;
     }
 
-    return isAuthorized ? children : <Navigate to="/login" />;
+    return isAuthorized ? children : <Navigate to="/search" />;
 }
 
 export default ProtectedRoute;
