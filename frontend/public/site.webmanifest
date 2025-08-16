@@ -1,6 +1,8 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Sieben Songs",
+  "short_name": "SiebenSongs",
+  "description": "Учите языки по текстам любимых песен.",
+  "start_url": "/search",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
