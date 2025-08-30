@@ -25,8 +25,19 @@ function SongChange({ song, onClick }) {
         }
     };
 
+    const isTouchDevice = typeof window !== "undefined" && 
+                      ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+
     return (
-        <div className={styles.songContainer} onClick={handleClick}>
+        <div
+            className={styles.songContainer}
+            onClick={handleClick}
+            {...(isTouchDevice && {
+            onTouchStart: (e) => e.currentTarget.classList.add(styles.active),
+            onTouchEnd: (e) => e.currentTarget.classList.remove(styles.active),
+            onTouchCancel: (e) => e.currentTarget.classList.remove(styles.active),
+            })}
+        >
             {song.original_title ? (
                     <p className={styles.centeredTitle}>{song.title}</p>
 

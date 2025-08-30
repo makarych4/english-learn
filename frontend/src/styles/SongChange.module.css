@@ -11,10 +11,6 @@
   min-height: 38px;
 }
 
-.songContainer:hover {
-  background-color: #ddd;
-}
-
 .songTitle {
   font-size: 1rem;
   font-weight: bold;
@@ -47,3 +43,17 @@
   margin: 0; /* Убираем все отступы */
 }
   
+  
+/* Для устройств с hover (ПК) */
+@media (hover: hover) {
+  .songItem:hover {
+    background-color: #ddd;
+  }
+}
+
+/* Для устройств без hover (мобильные) */
+@media (hover: none) {
+  .active {
+    background-color: #ddd;
+  }
+}

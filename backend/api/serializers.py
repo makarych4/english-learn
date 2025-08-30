@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Song, SongLyrics, Profile
+from .models import Song, SongLyrics, Profile, Annotation
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.db import models
 from django.contrib.auth.password_validation import validate_password
@@ -33,15 +33,6 @@ class UserSerializer(serializers.ModelSerializer):
         if User.objects.filter(username__iexact=value).exists():
             raise serializers.ValidationError("Пользователь с таким именем уже существует.")
         return value
-
-    # def validate_email(self, value):
-    #     """
-    #     Проверка, что почта (email) уникальна.
-    #     """
-    #     # Проверяем без учета регистра, чтобы "Test@email.com" и "test@email.com" считались одинаковыми
-    #     if User.objects.filter(email__iexact=value).exists():
-    #         raise serializers.ValidationError("Пользователь с такой почтой уже существует.")
-    #     return value
     
     def create(self, validated_data):
         # Шаг 1: Создаем и сохраняем User, получаем объект с id
@@ -49,14 +40,38 @@ class UserSerializer(serializers.ModelSerializer):
         # Шаг 2: Создаем и сохраняем Profile, используя user с уже существующим id
         Profile.objects.create(user=user)
         return user
-    
+
 class SongSerializer(serializers.ModelSerializer):
     class Meta:
         model = Song
-        fields = ["id", "title", "artist", "user", "youtube_id", "is_published"]
+        fields = ["id", "title", "artist", "user", "youtube_id", "is_published", "source_url"]
         extra_kwargs = {
             "user": {"read_only": True},
             "youtube_id": {"allow_blank": True},
+            "source_url": {"allow_blank": True},
+        }
+
+class AnnotationSerializer(serializers.ModelSerializer):
+    # Показываем ID строк, которые привязаны к этой аннотации
+    lines = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        read_only=False, # <-- Важно для PATCH
+        allow_empty=True,
+        queryset=SongLyrics.objects.all()
+    )
+    
+    class Meta:
+        model = Annotation
+        fields = ['id', 'note', 'song', 'user', 'lines']
+        read_only_fields = ['song', 'user']
+
+class SongLyricsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SongLyrics
+        fields = ["id", "original_line", "translated_line", "line_number", "song", 'annotation']
+        extra_kwargs = {
+            "original_line": {"allow_blank": True},
+            "translated_line": {"allow_blank": True},
         }
 
 class ArtistGroupSerializer(serializers.Serializer):
@@ -64,25 +79,12 @@ class ArtistGroupSerializer(serializers.Serializer):
     count = serializers.IntegerField()
     id = serializers.IntegerField(allow_null=True, required=False)
 
-
 class TitleGroupSerializer(serializers.Serializer):
     title = serializers.CharField()
     artist = serializers.CharField()
     count = serializers.IntegerField()
     id = serializers.IntegerField(allow_null=True, required=False)
     is_published = serializers.BooleanField(allow_null=True, required=False)
-
-        
-class SongLyricsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SongLyrics
-        fields = ["id", "original_line", "translated_line", "line_number", "song"]
-        extra_kwargs = {
-            "original_line": {"allow_blank": True},
-            "translated_line": {"allow_blank": True},
-        }
-
-
 
 class SongVersionListSerializer(serializers.ListSerializer):
     """
@@ -108,21 +110,19 @@ class SongVersionSerializer(serializers.ModelSerializer):
     Сериализатор для одной "версии" песни.
     Он использует кастомный ListSerializer для обработки списков.
     """
-    # Новое поле, которое берет значение из оригинального 'title'
     original_title = serializers.CharField(source='title')
 
     class Meta:
         model = Song
-        # Включаем новое поле и указываем порядок
         fields = [
             'id', 
-            'title',             # Это поле будет перезаписано в ListSerializer
+            'title',
             'original_title', 
             'artist', 
             'youtube_id', 
             'is_published'
         ]
-        # Главный трюк: указываем, какой класс использовать для списков
+        # указываем, какой класс использовать для списков
         list_serializer_class = SongVersionListSerializer
 
 class ChangePasswordSerializer(serializers.Serializer):

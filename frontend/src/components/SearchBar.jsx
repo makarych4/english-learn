@@ -23,6 +23,9 @@ function SearchBar() {
     // Отдельный стейт для поля ввода, чтобы не менять URL на каждое нажатие
     const [inputValue, setInputValue] = useState(query);
 
+    const isTouchDevice = typeof window !== "undefined" && 
+                      ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+
     // --- ШАГ 3: Обновленный useEffect для получения данных ---
     // Этот эффект запускается КАЖДЫЙ РАЗ, когда меняется URL (searchParams)
     useEffect(() => {
@@ -192,8 +195,14 @@ function SearchBar() {
                             {songs.map((item, index) => (
                                 <p
                                     key={index}
-                                    className={styles.artistItem}
+
                                     onClick={() => handleArtistClick(item.artist)}
+                                    className={`${styles.artistItem}`}
+                                                {...(isTouchDevice && {
+                                                onTouchStart: (e) => e.currentTarget.classList.add(styles.touchActive),
+                                                onTouchEnd: (e) => e.currentTarget.classList.remove(styles.touchActive),
+                                                onTouchCancel: (e) => e.currentTarget.classList.remove(styles.touchActive),
+                                                })}
                                 >
                                     <span className={styles.artistLabel}>{item.artist}</span>
                                     <span className={styles.artistCount}>{item.count}</span>

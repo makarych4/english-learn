@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 1rem 0 0.5rem;
+  margin: 0 0 8px;
 }
 
 .numberLine {
@@ -27,21 +27,32 @@
 .originalLine,
 .translationLine {
   width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 0.75rem;
+  padding: 12px;
+  margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
   box-sizing: border-box;
+
+  font-family: inherit;
+  resize: none;          /* запрещаем ручное растягивание */
+  overflow: hidden;      /* скрываем скролл */
+  line-height: 1.4;      /* читаемый интерлиньяж */
+
+  margin-bottom: 8px;
 }
 
-.addButton/*, .deleteButton*/ {
+.translationLine {
+  margin-bottom: 0; 
+}
+
+.addButton {
   padding: 0.6rem 1rem;
   font-size: 0.95rem;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  margin-right: 0.5rem;
+  margin-top: -12px; 
 }
 
 .addButton {
@@ -49,10 +60,46 @@
   color: #fff;
 }
 
-/* .deleteButton {
-  background-color: #f44336;
-  color: #fff;
-} */
+.lineContainer {
+  border-radius: 8px;
+  padding: 10px;
+
+  margin-left: -10px;
+  margin-right: -10px;
+  margin-bottom: 12px;
+
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Желтая подсветка для выбора */
+.lineContainer.selected {
+  background-color: rgba(255, 229, 100, 0.4);
+}
+
+/* Синяя подсветка для ховера */
+.lineContainer.highlighted {
+  background-color: rgba(0, 123, 255, 0.2);
+}
 
 
+/* Стили для режима аннотаций */
+.lineContainer.selected {
+  cursor: pointer;
+}
 
+.selectable {
+  cursor: pointer;
+}
+
+.selectable .originalLine,
+.selectable .translationLine {
+  /* ...делаем все его дочерние элементы "прозрачными" для кликов */
+  pointer-events: none;
+}
+
+.annotationPin {
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+  cursor: pointer;
+}

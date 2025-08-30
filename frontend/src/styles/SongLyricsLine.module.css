@@ -1,19 +1,49 @@
 .originalLine {
     font-size: 1.05rem;
     font-weight: 600;
-    margin: 0.6rem 0 0.2rem;
+    margin-top: 0;
+    margin-bottom: 5px; 
     color: #000;
     white-space: pre-wrap;
+    overflow-wrap: break-word;
   }
   
   .translatedLine {
     font-size: 1.05rem;
     color: #3c3c3c;
-    margin-bottom: 0.8rem;
+    margin-top: 0;
+    margin-bottom: 0;
     white-space: pre-wrap;
+    overflow-wrap: break-word;
   }
-  
 
+  
+  
+/* Общая обертка для строки */
+.lineWrapper {
+  border-radius: 8px;
+  transition: background-color 0.2s ease-in-out;
+
+  /* --- 1. ДОБАВЛЯЕМ ВНУТРЕННИЕ ОТСТУПЫ --- */
+  /* Добавляем "воздух" вокруг контента */
+  padding: 10px;
+
+  /* --- 2. КОМПЕНСИРУЕМ ОТРИЦАТЕЛЬНЫМИ ВНЕШНИМИ ОТСТУПАМИ --- */
+  /* "Втягиваем" блок обратно, чтобы он не занимал лишнее место */
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+/* Стиль для строк, у которых есть аннотация */
+.lineWrapper.annotated {
+  background-color: rgba(0, 123, 255, 0.1); /* Легкий синий фон по умолчанию */
+  cursor: pointer;
+}
+
+/* Стиль для подсветки при наведении */
+.lineWrapper.highlighted {
+  background-color: rgba(0, 123, 255, 0.2); /* Более насыщенный синий */
+}
 
 /* .originalLine {
     font-size: 1.05rem;

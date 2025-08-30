@@ -59,3 +59,79 @@
   margin: 0;
   padding-bottom: 4px;
 }
+
+/* ССЫЛКА НА ИСТОЧНИК */
+.sourceLinkContainer {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.sourceLink {
+  color: #007bff;
+  text-decoration: none;
+  /*font-style: italic;*/
+}
+
+.sourceLink:hover {
+  text-decoration: underline;
+}
+
+/* Модальное окно для аннотаций */
+.annotationOverlay {
+  position: fixed;
+  top: 0; 
+  right: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.2);
+  width: 100%;
+  height: 100vh;
+  
+  z-index: 90;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+ 
+}
+
+.annotationModal {
+  background-color: white;
+  color: black;
+  padding: 20px;
+  border-radius: 12px;
+  width: 85%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translate(-50%);
+}
+
+.closeButton img{
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  cursor: pointer;
+
+  width: 14px;
+  height: 14px;
+  filter: invert(50%)
+}
+
+.annotationContent {
+  max-height: 250px;
+  /* Добавляем скролл, если контент не помещается */
+  overflow-y: auto;
+  /* Стили для самого текста */
+  font-size: 1em;
+  line-height: 1.6;
+  white-space: pre-wrap; /* Сохраняет переносы строк из текста аннотации */
+  overflow-wrap: break-word;
+}
+
+.container .lineSeparator {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 5px 0 5px;
+}

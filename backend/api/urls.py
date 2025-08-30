@@ -26,4 +26,9 @@ urlpatterns = [
 
     path('songs/clone/<int:original_song_id>/', views.CloneSongView.as_view(), name='clone-song'),
     path("song-ownership/<int:pk>/", views.SongOwnershipCheck.as_view(), name="song-ownership"),
+
+    # Получить все аннотации для песни или создать новую
+    path('songs/<int:song_id>/annotations/', views.AnnotationListCreateView.as_view(), name='song-annotations-list'),
+    # Получить, обновить или удалить КОНКРЕТНУЮ аннотацию по ее ID
+    path('annotations/<int:annotation_id>/', views.AnnotationDetailView.as_view(), name='annotation-detail'),
 ]

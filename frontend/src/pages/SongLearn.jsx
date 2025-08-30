@@ -12,14 +12,19 @@ import  ensureAuth  from '../utils/authUtils';
 import styles from '../styles/SongLearn.module.css';
 
 import EditIcon from "../assets/pencil.svg";
+import CloseIcon from "../assets/close2.svg";
 
 function SongLearn() {
     const [lyrics, setLyrics] = useState([]);
-    const [songData, setSongData] = useState("")
+    const [songData, setSongData] = useState({});
     const [loading, setLoading] = useState(false);
     const [isOwner, setIsOwner] = useState(false);
     const [youtubeError, setYoutubeError] = useState(false);
     const { songId } = useParams();
+
+    const [annotations, setAnnotations] = useState([]);
+    const [hoveredAnnotationId, setHoveredAnnotationId] = useState(null);
+    const [activeAnnotation, setActiveAnnotation] = useState(null); // Для открытого окна
 
     const location = useLocation();
 
@@ -43,15 +48,19 @@ function SongLearn() {
                 const songUrl = ownerStatus
                     ? `/api/songs/${songId}/`
                     : `/api/songs/public/${songId}/`;
+
+                const annotationsUrl = `/api/songs/${songId}/annotations/`;
                 // 3. Выполняем запросы параллельно для скорости
-                const [lyricsResponse, songResponse] = await Promise.all([
+                const [lyricsResponse, songResponse, annotationsResponse] = await Promise.all([
                     api.get(lyricsUrl),
-                    api.get(songUrl)
+                    api.get(songUrl),
+                    api.get(annotationsUrl)
                 ]);
 
                 // 4. Устанавливаем данные
                 setLyrics(lyricsResponse.data);
                 setSongData(songResponse.data);
+                setAnnotations(annotationsResponse.data);
                 
 
             } catch (error) {
@@ -67,6 +76,17 @@ function SongLearn() {
 
         fetchData(); // Вызываем асинхронную функцию
     }, [songId]); // Зависимость только от songId
+
+    const handleAnnotationClick = (annotationId) => {
+        const annotation = annotations.find(anno => anno.id === annotationId);
+        if (annotation) {
+            setActiveAnnotation(annotation); // Показываем модальное окно с данными
+        }
+    };
+
+    const closeAnnotation = () => {
+        setActiveAnnotation(null);
+    };
 
     const handleEditOrClone = async () => {
         if (isOwner) {
@@ -132,13 +152,30 @@ function SongLearn() {
                         </h2>
                     </div>
 
+                    {/* --- ОТОБРАЖЕНИЕ ССЫЛКИ --- */}
+                    {songData.source_url && (
+                        <div className={styles.sourceLinkContainer}>
+                            <a 
+                                href={songData.source_url} 
+                                target="_blank" // Открывать в новой вкладке
+                                rel="noopener noreferrer" // Для безопасности
+                                className={styles.sourceLink}
+                            >
+                                Источник текста
+                            </a>
+                        </div>
+                    )}
+
                     <div className={styles.container}>
                         {lyrics.map((line, index) => (
                             <div key={line.id}>
                                 <SongLyricsLine
                                 line={line}
+                                onAnnotationClick={handleAnnotationClick}
+                                hoveredAnnotationId={hoveredAnnotationId}
+                                onHoverAnnotation={setHoveredAnnotationId}
                             />
-                                {index < lyrics.length - 1 && <hr/>}
+                                {index < lyrics.length - 1 && <hr className={styles.lineSeparator} />}
                             </div>
                             
                         ))}
@@ -146,6 +183,18 @@ function SongLearn() {
 
                     {songData.youtube_id && !youtubeError && (<YouTubePlayer videoId={songData.youtube_id} />)}     
                 </>
+            )}
+            {activeAnnotation && (
+                <div className={styles.annotationOverlay} onClick={closeAnnotation}>
+                    <div className={styles.annotationModal} onClick={(e) => e.stopPropagation()}>
+                        <div className={styles.closeButton} onClick={closeAnnotation}>
+                            <img src={CloseIcon} alt="Закрыть" />
+                        </div>
+                        <div className={styles.annotationContent}>
+                            {activeAnnotation.note}
+                        </div>
+                    </div>
+                </div>
             )}
             <BottomNavigation active={activeTab} />
         </div>

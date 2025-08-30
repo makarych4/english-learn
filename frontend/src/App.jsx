@@ -1,79 +1,24 @@
-import react from "react"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import Login from "./pages/Login"
-import Register from "./pages/Register"
-import Home from "./pages/Home"
-import NotFound from "./pages/NotFound"
-import ProtectedRoute from "./components/ProtectedRoute"
-import ProtectedRouteProfile from "./components/ProtectedRouteProfile"
-import EditSong from "./pages/EditSong";
-import ProtectedSongRoute from "./components/ProtectedSongRoute"
-import Profile from "./pages/Profile"
-import Search from "./pages/Search"
-import SongLearn from "./pages/SongLearn"
+// src/App.jsx
 
-import "./styles/global.css"
+// 1. Импортируем Outlet - это "место", куда роутер будет вставлять страницы
+import { Outlet } from "react-router-dom"; 
 
+// Импортируем глобальные стили
+import "./styles/global.css";
 
-function Logout() {
-  localStorage.clear()
-  return <Navigate to="/login" />
-}
-
-function RegisterAndLogout() {
-  localStorage.clear()
-  return <Register />
-}
-
+// App теперь - это компонент-макет (Layout)
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/login" element={<Login />} />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/register" element={<RegisterAndLogout />} />
-        <Route
-            path="/edit-song/:songId"
-            element={
-                <ProtectedRoute>
-                  <ProtectedSongRoute>
-                      <EditSong />
-                  </ProtectedSongRoute>
-                </ProtectedRoute>
-            }
-        />
-        <Route
-          path="/search"
-          element={     
-            <Search />
-          }
-        />
-        <Route
-          path="/song/:songId"
-          element={     
-            <SongLearn />
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRouteProfile>
-              <Profile />
-            </ProtectedRouteProfile>
-          }
-        />
-        <Route path="*" element={<NotFound />}></Route>
-      </Routes>
-    </BrowserRouter>
-  )
+    <>
+      {/* 
+        Здесь могла бы быть общая для всех страниц разметка,
+        например, шапка сайта (<Header />).
+        Outlet - это точка, в которой будет отображаться
+        текущая страница (Home, Login, Search и т.д.).
+      */}
+      <Outlet />
+    </>
+  );
 }
 
-export default App
+export default App;

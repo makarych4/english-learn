@@ -129,7 +129,7 @@
 
 .saveButton:disabled {
     background-color: #555;
-    cursor: not-allowed;
+   cursor: default;
 }
 
 .cancelButton {

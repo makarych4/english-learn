@@ -37,7 +37,7 @@
 
 .controls button:disabled {
   background-color: #bbb;
-  cursor: not-allowed;
+ cursor: default;
 }
 
 .pagination {

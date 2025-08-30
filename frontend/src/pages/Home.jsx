@@ -98,6 +98,7 @@ function Home() {
 
                         <label htmlFor="title">Название:</label>
                         <input
+                            type="text"
                             id="title"
                             required
                             value={title}
@@ -106,6 +107,7 @@ function Home() {
 
                         <label htmlFor="artist">Исполнитель:</label>
                         <input
+                            type="text"
                             id="artist"
                             required
                             value={artist}

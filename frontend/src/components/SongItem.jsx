@@ -24,9 +24,19 @@ function SongItem({ song, onClick }) {
             navigate(`/song/${song.id}`, { state: { from: fromTab } });
         }
     };
+    const isTouchDevice = typeof window !== "undefined" && 
+                      ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
     return (
-        <div onClick={handleClick} className={styles.songItem}>
+        <div
+            onClick={handleClick}
+            className={`${styles.songItem}`}
+            {...(isTouchDevice && {
+            onTouchStart: (e) => e.currentTarget.classList.add(styles.active),
+            onTouchEnd: (e) => e.currentTarget.classList.remove(styles.active),
+            onTouchCancel: (e) => e.currentTarget.classList.remove(styles.active),
+            })}
+        >
             {
                 song.original_title ? (
                     <p className={styles.centeredTitle}>{song.title}</p>

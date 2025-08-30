@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import generics
-from .serializers import UserSerializer, SongSerializer, SongLyricsSerializer, ArtistGroupSerializer
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Song, SongLyrics
+from .serializers import UserSerializer, SongSerializer, SongLyricsSerializer, ArtistGroupSerializer, AnnotationSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly
+from .models import Song, SongLyrics, Annotation
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
@@ -394,18 +394,31 @@ class SongLyricsUpdate(APIView):
             song = Song.objects.get(id=song_id)
             if song.user != request.user:
                 raise PermissionDenied("Вы не можете редактировать эту песню.")
-            
+
+            old_annotation_ids = set(
+                SongLyrics.objects.filter(song_id=song_id, annotation__isnull=False)
+                .values_list('annotation_id', flat=True)
+            )
             # 1. Удалить старые строки
             SongLyrics.objects.filter(song_id=song_id).delete()
             
+            new_lyrics_data = request.data
+
             # 2. Создать новые строки
             serializer = SongLyricsSerializer(
-                data=request.data,
+                data=new_lyrics_data,
                 many=True,
                 context={'song_id': song_id})
             serializer.is_valid(raise_exception=True)
-            serializer.save()
-            
+            new_lyrics_instances = serializer.save() 
+
+            # Находим все старые аннотации, у которых больше не осталось связанных строк
+            orphan_annotations = Annotation.objects.filter(
+                id__in=old_annotation_ids
+                ).annotate(line_count=Count('lines')).filter(line_count=0)
+            # И удаляем их
+            orphan_annotations.delete()
+
             # 3. Обновление search_text
             clean_title = re.sub(r"\s+", " ", song.title.strip()).lower()
             clean_artist = re.sub(r"\s+", " ", song.artist.strip()).lower()
@@ -424,10 +437,22 @@ class SongLyricsUpdate(APIView):
             # 4. Обновление поля words для статистики частоты встречаемости слов
             self.update_words_field(song)
 
-            return Response()
+            updated_lyrics = SongLyrics.objects.filter(song_id=song_id).order_by('line_number')
+            updated_annotations = Annotation.objects.filter(song_id=song_id)
+
+            # Сериализуем и отправляем оба набора данных
+            lyrics_serializer = SongLyricsSerializer(updated_lyrics, many=True)
+            annotations_serializer = AnnotationSerializer(updated_annotations, many=True)
+
+            return Response({
+                'lyrics': lyrics_serializer.data,
+                'annotations': annotations_serializer.data,
+            }, status=status.HTTP_200_OK)
         
-        except:
-            return Response()
+        except Exception as e:
+            # Лучше добавить логирование ошибок
+            print(f"Error in SongLyricsUpdate: {e}")
+            return Response({"detail": "Произошла ошибка при сохранении."}, status=status.HTTP_400_BAD_REQUEST)
     
     def update_words_field(self, song):
         # Разбиваем search_text по словам, приводим к нижнему регистру
@@ -447,7 +472,7 @@ class WordFrequencyTopAPIView(generics.ListAPIView):
     pagination_class = WordFrequencyPagination
 
     def get_queryset(self):
-        all_words = Song.objects.values_list("words", flat=True)
+        all_words = Song.objects.filter(is_published=True).values_list("words", flat=True)
         counter = Counter()
         for word_list in all_words:
             if word_list:
@@ -470,7 +495,7 @@ class WordFrequencyCustomAPIView(APIView):
         if not isinstance(words, list):
             return Response({"error": "Неверный формат слов"}, status=400)
 
-        queryset = Song.objects.values_list("words", flat=True)
+        queryset = Song.objects.filter(is_published=True).values_list("words", flat=True)
         counter = Counter()
 
         for word_list in queryset:
@@ -515,35 +540,54 @@ class CloneSongView(APIView):
         # 1. Находим оригинальную песню. Если ее нет, будет ошибка 404.
         # Убеждаемся, что она опубликована, чтобы нельзя было копировать чужие черновики.
         original_song = get_object_or_404(Song, id=original_song_id, is_published=True)
+        new_user = request.user
 
         # 2. Создаем копию основной информации о песне
         new_song = Song.objects.create(
             title=f"Копия: {original_song.title}",
             artist=original_song.artist,
             youtube_id=original_song.youtube_id,
-            user=request.user, # Присваиваем песню текущему пользователю
-            is_published=False, # Новая копия всегда является черновиком
+            source_url=original_song.source_url,
+            user=new_user,
+            is_published=False,
             # search_text и words будут пересчитаны при сохранении песни пользователем
         )
 
-        # 3. Копируем строки текста (lyrics)
+        # 3. Копируем аннотации и создаем карту соответствия: {старый_id: новый_объект}
+        original_annotations = original_song.annotations.all()
+        annotation_map = {} # {old_annotation_id: new_annotation_instance}
+
+        for old_anno in original_annotations:
+            new_anno = Annotation.objects.create(
+                song=new_song,
+                user=new_user, # Владельцем копии аннотации становится новый пользователь
+                note=old_anno.note
+            )
+            annotation_map[old_anno.id] = new_anno
+
+        # 4. Копируем строки текста (lyrics)
         original_lyrics = original_song.lyrics.all().order_by('line_number')
         new_lyrics_list = []
 
-        for line in original_lyrics:
-            new_lyrics_list.append(
-                SongLyrics(
-                    song=new_song,
-                    original_line=line.original_line,
-                    translated_line=line.translated_line,
-                    line_number=line.line_number
-                )
+        for old_line in original_lyrics:
+            new_line = SongLyrics(
+                song=new_song,
+                original_line=old_line.original_line,
+                translated_line=old_line.translated_line,
+                line_number=old_line.line_number
             )
+
+            # Если у старой строки была аннотация...
+            if old_line.annotation_id:
+                # ...находим ее новую копию в нашей карте и привязываем.
+                new_line.annotation = annotation_map.get(old_line.annotation_id)
+
+            new_lyrics_list.append(new_line)
 
         # Создаем все новые строки одним запросом для эффективности
         SongLyrics.objects.bulk_create(new_lyrics_list)
         
-        # 4. Возвращаем данные о новой песне, чтобы фронтенд знал ее ID
+        # 5. Возвращаем данные о новой песне
         serializer = SongSerializer(new_song)
         return Response(serializer.data, status=201) # 201 Created
     
@@ -562,8 +606,6 @@ class SongOwnershipCheck(APIView):
         is_owner = (song.user == request.user)
         return Response({"is_owner": is_owner}, status=status.HTTP_200_OK)
     
-
-    
 class ChangePasswordView(generics.GenericAPIView):
     """
     Эндпоинт для смены пароля аутентифицированного пользователя.
@@ -575,4 +617,130 @@ class ChangePasswordView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"detail": "Пароль успешно изменен."}, status=status.HTTP_200_OK)
+        return Response({"detail": "Пароль успешно изменен."}, status=status.HTTP_200_OK) 
+
+class AnnotationListCreateView(APIView):
+    """
+    Получение списка аннотаций для песни (GET)
+    и создание новой аннотации для группы строк (POST).
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly] # Читать могут все, создавать - только залогиненные
+
+    def get(self, request, song_id):
+        annotations = Annotation.objects.filter(song_id=song_id)
+        serializer = AnnotationSerializer(annotations, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, song_id):
+        song = get_object_or_404(Song, id=song_id)
+        user = request.user
+        line_ids = request.data.get('line_ids', [])
+        note = request.data.get('note', '')
+
+        if not line_ids or not note:
+            return Response({'detail': 'Необходимо указать строки (line_ids) и текст аннотации (note).'}, status=400)
+
+        # Проверяем, что все строки принадлежат этой песне и не имеют аннотаций
+        lines_to_annotate = SongLyrics.objects.filter(song=song, id__in=line_ids, annotation__isnull=True)
+        
+        if len(lines_to_annotate) != len(set(line_ids)):
+             return Response({'detail': 'Одна или несколько строк не принадлежат этой песне или уже аннотированы.'}, status=400)
+
+        with transaction.atomic():
+            # 1. Создаем объект аннотации
+            annotation = Annotation.objects.create(song=song, user=user, note=note)
+            
+            # 2. Привязываем строки к этой аннотации
+            lines_to_annotate.update(annotation=annotation)
+
+        # Возвращаем не одну созданную аннотацию, а весь обновленный список
+        updated_annotations = Annotation.objects.filter(song=song)
+        serializer = AnnotationSerializer(updated_annotations, many=True)
+        return Response(serializer.data, status=201)
+
+class AnnotationDetailView(APIView):
+    """
+    Получение, обновление и удаление конкретной аннотации по ее ID.
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly] # Читать могут все, менять - только автор
+
+    def get_object(self, annotation_id, user=None):
+        """Вспомогательный метод для получения объекта и проверки прав."""
+        annotation = get_object_or_404(Annotation, id=annotation_id)
+        
+        # Для методов, требующих авторства (PATCH, DELETE), проверяем владельца
+        if user and annotation.user != user:
+            raise PermissionDenied("Вы не можете изменять или удалять чужую аннотацию.")
+            
+        return annotation
+
+    def get(self, request, annotation_id):
+        annotation = self.get_object(annotation_id)
+        serializer = AnnotationSerializer(annotation)
+        return Response(serializer.data)
+
+    @transaction.atomic
+    def patch(self, request, annotation_id):
+        annotation = self.get_object(annotation_id, user=request.user)
+        song = annotation.song
+
+        # 1. Получаем ID строк из запроса
+        line_ids = request.data.get('line_ids') # Имя поля должно совпадать с сериализатором
+
+        # 2. Если ID строк были переданы, обрабатываем их
+        if line_ids is not None: # Проверяем на None, чтобы можно было передать пустой список []
+            # Отвязываем все СТАРЫЕ строки от этой аннотации
+            annotation.lines.update(annotation=None)
+            
+            # Проверяем, что новые строки существуют, принадлежат той же песне
+            # и не привязаны к другой аннотации.
+            lines_to_update = SongLyrics.objects.filter(
+                id__in=line_ids,
+                song=annotation.song,
+                annotation__isnull=True
+            )
+            
+            # Если количество найденных валидных строк не совпадает с запрошенным,
+            # значит, была передана некорректная строка.
+            if len(lines_to_update) != len(line_ids):
+                return Response(
+                    {'detail': 'Одна или несколько строк невалидны или уже аннотированы.'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Привязываем НОВЫЕ строки к аннотации
+            lines_to_update.update(annotation=annotation)
+        
+        serializer = AnnotationSerializer(annotation, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        updated_lyrics = SongLyrics.objects.filter(song=song).order_by('line_number')
+        updated_annotations = Annotation.objects.filter(song=song)
+
+        lyrics_serializer = SongLyricsSerializer(updated_lyrics, many=True)
+        annotations_serializer = AnnotationSerializer(updated_annotations, many=True)
+
+        return Response({
+            'lyrics': lyrics_serializer.data,
+            'annotations': annotations_serializer.data,
+        })
+
+    def delete(self, request, annotation_id):
+        annotation = self.get_object(annotation_id, user=request.user)
+        song = annotation.song 
+        # 1. Отвязываем все строки от этой аннотации
+        annotation.lines.update(annotation=None)
+        
+        # 2. Удаляем саму аннотацию
+        annotation.delete()
+
+        updated_lyrics = SongLyrics.objects.filter(song=song).order_by('line_number')
+        updated_annotations = Annotation.objects.filter(song=song)
+
+        lyrics_serializer = SongLyricsSerializer(updated_lyrics, many=True)
+        annotations_serializer = AnnotationSerializer(updated_annotations, many=True)
+        return Response({
+            'lyrics': lyrics_serializer.data,
+            'annotations': annotations_serializer.data,
+        })

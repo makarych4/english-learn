@@ -12,7 +12,9 @@ class Song(models.Model):
     words = ArrayField(models.TextField(), blank=True, default=list)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="uploaded_song")
     youtube_id = models.CharField(max_length=20, blank=True, null=True)
+    #is_approved = models.BooleanField(default=False)
     is_published = models.BooleanField(default=False)
+    source_url = models.URLField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return f"{self.artist} - {self.title}"
@@ -38,22 +40,25 @@ class Song(models.Model):
             
             if updated_songs:
                 cls.objects.bulk_update(updated_songs, ['words'])
-    
+
+class Annotation(models.Model):
+    song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name='annotations')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="annotations")
+    note = models.TextField()
+
 class SongLyrics(models.Model):
     original_line = models.TextField()
     translated_line = models.TextField()
     line_number = models.PositiveIntegerField()
     song = models.ForeignKey(Song, on_delete=models.CASCADE, related_name="lyrics")
+    annotation = models.ForeignKey(Annotation, on_delete=models.SET_NULL, related_name="lines", null=True, blank=True)
 
     class Meta:
+        unique_together = ('song', 'line_number')
         ordering = ["line_number"]
-        # constraints = [
-        #     models.UniqueConstraint(fields=['song', 'line_number'], name='unique_line_per_song')
-        # ]
 
     def __str__(self):
         return f"{self.song.title} (Line {self.line_number})"
-    
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
