@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { flushSync } from 'react-dom';
 import { useParams, useNavigate, useBlocker } from "react-router-dom";
 import api from "../api";
 import EditSongLyricsLine from "../components/EditSongLyricsLine";
@@ -48,7 +49,7 @@ useEffect(() => {
         // Этот эффект теперь будет обрабатывать логику подтверждения
         if (blocker && blocker.state === 'blocked') {
             // Показываем стандартное диалоговое окно
-            if (window.confirm("У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?")) {
+            if (window.confirm("У Вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?")) {
                 blocker.proceed(); // Если "ОК", разрешаем переход
             } else {
                 blocker.reset(); // Если "Отмена", сбрасываем блокировку
@@ -319,6 +320,9 @@ const handleDeleteSong = async () => {
         const res = await api.delete(`/api/songs/delete/${songId}/`);
         if (res.status === 204) {
             alert("Песня успешно удалена!");
+            flushSync(() => {
+                setIsDirty(false);
+            });
             navigate("/");
         } else {
             alert("Не удалось удалить песню");
@@ -362,7 +366,7 @@ const handlePublishSong = async () => {
         SetisPublished(true);
     } catch (err) {
         if (err.response.data.source_url) {
-            alert("Пожалуйста, введите корректный URL в поле 'Ссылка на источник текста'.");
+            alert("Ошибка. Данные не изменены. Пожалуйста, введите корректный URL в поле 'Ссылка на источник текста'.");
         }
         else alert("Ошибка. Данные не изменены.");
     } finally {
@@ -455,7 +459,7 @@ const handleSave = async () => {
         else alert("Изменения сохранены и видны другим пользователям!")
     } catch (err) {
         if (err.response.data.source_url) {
-            alert("Пожалуйста, введите корректный URL в поле 'Ссылка на источник текста'.");
+            alert("Ошибка. Данные не изменены. Пожалуйста, введите корректный URL в поле 'Ссылка на источник текста'.");
         }
         else alert("Ошибка. Данные не изменены.");
     } finally {
@@ -468,7 +472,7 @@ const handleFillLyrics = async () => {
         return;
     }
 
-    if (!window.confirm("Уверен? 🤔")) {
+    if (!window.confirm("Весь текст песни будет удалён, заполнен оригинальными строками и сохранён. Продолжить?")) {
         return;
     }
 
@@ -489,7 +493,7 @@ const handleFillLyrics = async () => {
             setTitle(res.data.title);
             setArtist(res.data.artist);
             setYoutubeId(res.data.youtube_id);
-            getLyrics();
+            setLyrics(res.data.lyrics);
         }
     } catch (err) {
         alert("Не удалось получить текст песни");
@@ -506,14 +510,14 @@ const handleFillTranslations = async () => {
         return;
     }
 
-    if (!window.confirm("Уверен? 🤔")) {
+    const isAuth = await ensureAuth(navigate);
+    if (!isAuth) return;
+
+    if (!window.confirm("Весь текст песни будет сохранен, все текущие пустые строки перевода будут заполнены автоматически и сохранены. Продолжить?")) {
         return;
     }
     
     setLoading(true);
-
-    const isAuth = await ensureAuth(navigate);
-    if (!isAuth) return;
 
     try {
         await api.post(`/api/songLyrics/update/${songId}/`, lyrics);
@@ -521,7 +525,8 @@ const handleFillTranslations = async () => {
         const res = await api.post(`/api/songs/translate/${songId}/`);
 
         if (res.data.success) {
-            getLyrics();
+            setLyrics(res.data.lyrics);
+            alert("Перевод успешно завершен!");
         }
 
     } catch (err) {
