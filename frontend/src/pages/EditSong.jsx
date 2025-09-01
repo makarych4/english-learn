@@ -362,6 +362,7 @@ const handlePublishSong = async () => {
 
         // только после успешного сохранения - публикуем
         await api.patch(`/api/songs/${songId}/`, { is_published: true });
+        setIsDirty(false);
         alert("Песня успешно опубликована!");
         SetisPublished(true);
     } catch (err) {

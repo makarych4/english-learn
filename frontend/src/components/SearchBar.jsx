@@ -5,6 +5,7 @@ import api from "../api";
 import SongItem from "./SongItem";
 import LoadingIndicator from "./LoadingIndicator";
 import styles from "../styles/SearchBar.module.css";
+import CloseIcon from "../assets/close2.svg";
 
 function SearchBar() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -141,16 +142,30 @@ function SearchBar() {
         });
     };
 
+    const handleClearInput = () => {
+        setInputValue("");
+    };
+
     return (
         <div className={styles.searchBar}>
-            <input
-                id="mainSearchInput"
-                className={styles.searchInput}
-                value={inputValue}
-                type="search"
-                onChange={e => setInputValue(e.target.value)}
-                placeholder="Поиск..."
-            />
+            <div className={styles.inputContainer}>
+                <input
+                    id="mainSearchInput"
+                    className={styles.searchInput}
+                    value={inputValue}
+                    type="search"
+                    onChange={e => setInputValue(e.target.value)}
+                    placeholder="Поиск..."
+                />
+                {inputValue && (
+                    <img
+                        src={CloseIcon}
+                        className={styles.clearIcon}
+                        onClick={handleClearInput}
+                        alt="Очистить поиск"
+                    />
+                )}
+            </div>
     
             <div className={styles.searchModeTabs}>
                 <label
@@ -218,6 +233,7 @@ function SearchBar() {
                                         key={song.id || `${song.artist}-${song.title}`}
                                         song={song}
                                         onClick={song.count ? handleSongGroupClick : null}
+                                        activeTab="search"
                                     />
                                 ))
                             ) : (

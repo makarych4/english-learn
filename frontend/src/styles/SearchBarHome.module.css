@@ -2,7 +2,6 @@
   padding: 16px;*
 }
 */
-
 .inputContainer {
   position: relative;
 }
@@ -51,7 +50,7 @@
 }
 
 .active {
-  background-color: #2d89ff;
+  background-color: #28a745;
   color: #fff;
 }
 

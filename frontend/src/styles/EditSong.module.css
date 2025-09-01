@@ -20,7 +20,7 @@
 }
 
 .parseButton, .saveButton {
-  background-color: #007bff;
+  background-color: #28a745;
   color: #fff;
 }
 
@@ -40,7 +40,7 @@
 
 
 .addButton {
-  background-color: #4caf50;
+  background-color: #28a745;
   color: #fff;
 }
 
@@ -254,7 +254,7 @@
 }
 
 .saveAnnotationButton {
-  background-color: #0088ff;
+  background-color: #28a745;
   color: white;
   cursor: pointer;
 }

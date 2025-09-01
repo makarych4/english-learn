@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom"; // Главный инструмент
 import Pagination from "./Pagination";
 import api from "../api";
 import SongChange from "./SongChange";
 import LoadingIndicator from "./LoadingIndicator";
-import styles from "../styles/SearchBar.module.css";
+import styles from "../styles/SearchBarHome.module.css";
+import CloseIcon from "../assets/close2.svg";
 
-function SearchBar() {
+function SearchBar({ onCountLoad }) {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // --- ШАГ 1: URL - единственный источник правды ---
@@ -19,7 +20,8 @@ function SearchBar() {
 
     // --- ШАГ 2: Локальное состояние, не попадающее в URL ---
     const [songs, setSongs] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    //const [initialLoading, setInitialLoading] = useState(true);
     const [totalPages, setTotalPages] = useState(0);
     // Отдельный стейт для поля ввода, чтобы не менять URL на каждое нажатие
     const [inputValue, setInputValue] = useState(query);
@@ -27,10 +29,11 @@ function SearchBar() {
     const isTouchDevice = typeof window !== "undefined" && 
                       ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
+    const isInitialLoad = useRef(true); 
     // --- ШАГ 3: Обновленный useEffect для получения данных ---
     // Этот эффект запускается КАЖДЫЙ РАЗ, когда меняется URL (searchParams)
     useEffect(() => {
-        const getSongs = () => {
+        const getSongsAndCount = () => {
             setLoading(true);
             const trimmed = query.replaceAll(" ", "");
             const resolvedSearchType = trimmed.length === 0 ? "all_songs_search" : "reduce_songs_search";
@@ -44,18 +47,42 @@ function SearchBar() {
             if (selectedArtist) params.selected_artist = selectedArtist;
             if (selectedTitle) params.selected_title = selectedTitle;
 
-            api.get("/api/songs/", { params })
-                .then((res) => {
-                    console.log("Ответ от сервера:", res);
-                    setSongs(res.data.results);
-                    setTotalPages(res.data.count ? Math.ceil(res.data.count / 10) : 0);
+            const promises = [
+                api.get("/api/songs/", { params }) // Запрос списка песен
+            ];
+
+            if (isInitialLoad.current) {
+                promises.push(api.get("/api/songs/count/"));
+            }
+
+            Promise.all(promises)
+                .then((responses) => {
+                    const songsRes = responses[0];
+                    setSongs(songsRes.data.results);
+                    setTotalPages(songsRes.data.count ? Math.ceil(songsRes.data.count / 10) : 0);
+                    
+                    // Сообщаем родителю общее количество песен
+                    if (isInitialLoad.current) {
+                        const countRes = responses[1]; // Ответ на количество будет вторым
+                        onCountLoad(countRes.data.song_count);
+                        isInitialLoad.current = false; // "Выключаем" флаг навсегда
+                    }
                 })
-                .catch((err) => alert(err))
-                .finally(() => setLoading(false));
+                .catch((err) => {
+                    console.error("Error:", err);
+                    alert(err);
+                    if (isInitialLoad.current) {
+                        onCountLoad(0); // На случай ошибки при первой загрузке
+                        isInitialLoad.current = false;
+                    }
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
         };
 
-        getSongs();
-    }, [searchParams]); // Зависимость только от searchParams!
+        getSongsAndCount();
+    }, [searchParams, onCountLoad]); // Зависимость только от searchParams!
 
     // --- ШАГ 4: Эффект для задержки поиска (Debouncing) ---
     useEffect(() => {
@@ -143,15 +170,34 @@ function SearchBar() {
         });
     };
 
+    const handleClearInput = () => {
+        setInputValue("");
+    };
+
+    if (isInitialLoad.current)
+    {
+        return <LoadingIndicator />;
+    }
+
     return (
         <div className={styles.searchBar}>
-            <input
-                className={styles.searchInput}
-                value={inputValue}
-                type="search"
-                onChange={e => setInputValue(e.target.value)}
-                placeholder="Поиск по моим песням..."
-            />
+            <div className={styles.inputContainer}>
+                <input
+                    className={styles.searchInput}
+                    value={inputValue}
+                    type="search"
+                    onChange={e => setInputValue(e.target.value)}
+                    placeholder="Поиск по моим песням..."
+                />
+                {inputValue && (
+                    <img
+                        src={CloseIcon}
+                        className={styles.clearIcon}
+                        onClick={handleClearInput}
+                        alt="Очистить поиск"
+                    />
+                )}
+            </div>
     
             <div className={styles.searchModeTabs}>
                 <label
@@ -218,6 +264,7 @@ function SearchBar() {
                                         key={song.id || `${song.artist}-${song.title}`}
                                         song={song}
                                         onClick={song.count ? handleSongGroupClick : null}
+                                        activeTab="home"
                                     />
                                 ))
                             ) : (

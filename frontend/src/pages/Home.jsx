@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import BottomNavigation from '../components/BottomNavigation';
 import WordFrequencyChart from '../components/WordFrequencyChart';
 import SearchBarHome from "../components/SearchBarHome";
+import LoadingIndicator from "../components/LoadingIndicator";
+
 import ensureAuth from "../utils/authUtils";
 import styles from "../styles/Home.module.css";
 
@@ -12,8 +14,17 @@ function Home() {
     const [artist, setArtist] = useState("");
     const [showForm, setShowForm] = useState(false);
     const [showChart, setShowChart] = useState(false);
+    const [userSongCount, setUserSongCount] = useState(undefined);
 
     const navigate = useNavigate();
+    // лоадер, пока не узнали число песен
+    // const isLoadingCount = userSongCount === null;
+    // const hasSongs = userSongCount > 0;
+
+    const hasSongs = userSongCount !== undefined && userSongCount > 0;
+    const handleCountLoad = useCallback((count) => {
+        setUserSongCount(count);
+    }, []);
 
     useEffect(() => {
         // Проверяем, должен ли быть показан оверлей
@@ -68,9 +79,17 @@ function Home() {
                         График
                     </button>
 
-                    <h2>Мои Песни</h2>
+                    <h1>Мои Песни</h1>
 
-                    <SearchBarHome />
+                    <div style={{ display: userSongCount === 0 ? 'none' : 'block' }}>
+                        <SearchBarHome onCountLoad={handleCountLoad} />
+                    </div>
+
+                    {userSongCount === 0 && (
+                        <div className={styles.noSongsMessage}>
+                            <h3>Вы ещё не создали ни одной песни</h3>
+                        </div>
+                    )}
 
                     <button className={`${styles.fab} fixed-class`} onClick={() => setShowForm(true)}>
                         +

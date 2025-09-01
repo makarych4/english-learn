@@ -23,6 +23,8 @@ urlpatterns = [
 
     path('user/', views.CurrentUserView.as_view(), name='current-user'),
     path('change-password/', views.ChangePasswordView.as_view(), name='change-password'),
+    # Число песен пользователя
+    path('songs/count/', views.UserSongCountView.as_view(), name='user-song-count'),
 
     path('songs/clone/<int:original_song_id>/', views.CloneSongView.as_view(), name='clone-song'),
     path("song-ownership/<int:pk>/", views.SongOwnershipCheck.as_view(), name="song-ownership"),
@@ -31,4 +33,5 @@ urlpatterns = [
     path('songs/<int:song_id>/annotations/', views.AnnotationListCreateView.as_view(), name='song-annotations-list'),
     # Получить, обновить или удалить КОНКРЕТНУЮ аннотацию по ее ID
     path('annotations/<int:annotation_id>/', views.AnnotationDetailView.as_view(), name='annotation-detail'),
+
 ]

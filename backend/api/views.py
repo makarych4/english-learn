@@ -192,11 +192,11 @@ class BaseSongListView:
                             default=None,
                             output_field=IntegerField()
                         ),
-                        # is_published=Case(
-                        #     When(count=1, then='is_published'),
-                        #     default=None,
-                        #     output_field=BooleanField()
-                        # ),
+                        is_published=Case(
+                            When(count__gte=1, then=True),
+                            default=False,
+                            output_field=BooleanField()
+                        ),
                         artist=Subquery(most_common_artist, output_field=CharField()),
                         title=Subquery(most_common_title, output_field=CharField()),
                     )
@@ -274,11 +274,11 @@ class BaseSongListView:
                     default=None,
                     output_field=IntegerField()
                 ),
-                # is_published=Case(
-                #             When(count=1, then='is_published'),
-                #             default=None,
-                #             output_field=BooleanField()
-                #         ),
+                is_published=Case(
+                    When(count__gte=1, then=True),
+                    default=False,
+                    output_field=BooleanField()
+                ),
                 artist=Subquery(most_common_artist_in_group, output_field=CharField()),
                 title=Subquery(most_common_title_in_group, output_field=CharField())
             )
@@ -744,3 +744,10 @@ class AnnotationDetailView(APIView):
             'lyrics': lyrics_serializer.data,
             'annotations': annotations_serializer.data,
         })
+    
+class UserSongCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        count = Song.objects.filter(user=request.user).count()
+        return Response({'song_count': count})
