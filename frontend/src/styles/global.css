@@ -38,7 +38,7 @@ input[type="search"] {
   /* Задаем фоновую иконку, но пока не указываем ее */
   background-repeat: no-repeat;
   /* Иконка будет справа с отступом 10px */
-  background-position: right 13px center; 
+  background-position: right 8px center; 
   /* Увеличим размер иконки, как вы просили */
   background-size: 20px 20px;
 }
