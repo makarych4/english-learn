@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom"; // Главный инструмент
 import Pagination from "./Pagination";
 import api from "../api";
@@ -30,6 +30,8 @@ function SearchBar() {
     // --- ШАГ 3: Обновленный useEffect для получения данных ---
     // Этот эффект запускается КАЖДЫЙ РАЗ, когда меняется URL (searchParams)
     useEffect(() => {
+        // контроллер отмены
+        const controller = new AbortController();
         const getSongs = () => {
             setLoading(true);
             const trimmed = query.replaceAll(" ", "");
@@ -44,16 +46,36 @@ function SearchBar() {
             if (selectedArtist) params.selected_artist = selectedArtist;
             if (selectedTitle) params.selected_title = selectedTitle;
 
-            api.get("/api/songs/public/", { params })
+            api.get("/api/songs/public/", {
+                params,
+                // Передаем сигнал от контроллера в axios
+                signal: controller.signal
+            })
                 .then((res) => {
                     setSongs(res.data.results);
                     setTotalPages(res.data.count ? Math.ceil(res.data.count / 10) : 0);
+                    setLoading(false);
                 })
-                .catch((err) => alert(err))
-                .finally(() => setLoading(false));
+                .catch((err) => {
+                    // Проверяем, не была ли ошибка вызвана отменой
+                    if (err.name === 'CanceledError') {
+                        console.log('Запрос со страницы Поиска был отменен');
+                    } else {
+                        alert(err);
+                    }
+                })
+                .finally(() => {
+                    //isInitialLoad.current = false;
+                });
         };
 
         getSongs();
+
+        // Функция очистки
+        return () => {
+            // Когда компонент размонтируется, отменяем запрос
+            controller.abort();
+        };
     }, [searchParams]); // Зависимость только от searchParams!
 
     // --- ШАГ 4: Эффект для задержки поиска (Debouncing) ---
@@ -79,7 +101,7 @@ function SearchBar() {
                     });
                 }
             }
-        }, 800); // Задержка 800мс
+        }, 600); // Задержка 600мс
 
         return () => clearTimeout(timeoutId);
     }, [inputValue]);
@@ -182,7 +204,7 @@ function SearchBar() {
                 </label>
             </div>
 
-            {!loading && selectedArtist && !selectedTitle && (
+            {selectedArtist && !selectedTitle && (
                 <div className={styles.songHint}>
                     <p className={styles.selectedArtistWithout}>
                         {selectedArtist}
@@ -190,7 +212,7 @@ function SearchBar() {
                 </div>
             )}
 
-            {!loading && selectedArtist && selectedTitle && (
+            {selectedArtist && selectedTitle && (
                 <div className={styles.songHint}>
                     <p className={styles.selectedTitle}>
                         {selectedTitle}

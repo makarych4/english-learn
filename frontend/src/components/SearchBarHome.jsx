@@ -20,7 +20,7 @@ function SearchBar({ onCountLoad }) {
 
     // --- ШАГ 2: Локальное состояние, не попадающее в URL ---
     const [songs, setSongs] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     //const [initialLoading, setInitialLoading] = useState(true);
     const [totalPages, setTotalPages] = useState(0);
     // Отдельный стейт для поля ввода, чтобы не менять URL на каждое нажатие
@@ -33,6 +33,9 @@ function SearchBar({ onCountLoad }) {
     // --- ШАГ 3: Обновленный useEffect для получения данных ---
     // Этот эффект запускается КАЖДЫЙ РАЗ, когда меняется URL (searchParams)
     useEffect(() => {
+        // контроллер отмены
+        const controller = new AbortController();
+
         const getSongsAndCount = () => {
             setLoading(true);
             const trimmed = query.replaceAll(" ", "");
@@ -48,7 +51,11 @@ function SearchBar({ onCountLoad }) {
             if (selectedTitle) params.selected_title = selectedTitle;
 
             const promises = [
-                api.get("/api/songs/", { params }) // Запрос списка песен
+                api.get("/api/songs/", {
+                    params,
+                    // Передаем сигнал от контроллера в axios
+                    signal: controller.signal
+                })
             ];
 
             if (isInitialLoad.current) {
@@ -70,10 +77,14 @@ function SearchBar({ onCountLoad }) {
                 })
                 .catch((err) => {
                     console.error("Error:", err);
-                    alert(err);
-                    if (isInitialLoad.current) {
-                        onCountLoad(0); // На случай ошибки при первой загрузке
-                        isInitialLoad.current = false;
+                    if (err.name === 'CanceledError') {
+                        console.log('Запрос был отменен');
+                    } else {
+                        alert(err);
+                        if (isInitialLoad.current) {
+                            onCountLoad(0); // На случай ошибки при первой загрузке
+                            isInitialLoad.current = false;
+                        }
                     }
                 })
                 .finally(() => {
@@ -82,7 +93,13 @@ function SearchBar({ onCountLoad }) {
         };
 
         getSongsAndCount();
-    }, [searchParams, onCountLoad]); // Зависимость только от searchParams!
+
+        // Функция очистки
+        return () => {
+            // Когда компонент размонтируется, отменяем запрос
+            controller.abort();
+        };
+    }, [searchParams, onCountLoad]);
 
     // --- ШАГ 4: Эффект для задержки поиска (Debouncing) ---
     useEffect(() => {
@@ -107,7 +124,7 @@ function SearchBar({ onCountLoad }) {
                     });
                 }
             }
-        }, 800); // Задержка 800мс
+        }, 600); // Задержка 600мс
 
         return () => clearTimeout(timeoutId);
     }, [inputValue]);
@@ -214,7 +231,7 @@ function SearchBar({ onCountLoad }) {
                 </label>
             </div>
 
-            {!loading && selectedArtist && !selectedTitle && (
+            {selectedArtist && !selectedTitle && (
                 <div className={styles.songHint}>
                     <p className={styles.selectedArtistWithout}>
                         {selectedArtist}
@@ -222,7 +239,7 @@ function SearchBar({ onCountLoad }) {
                 </div>
             )}
 
-            {!loading && selectedArtist && selectedTitle && (
+            {selectedArtist && selectedTitle && (
                 <div className={styles.songHint}>
                     <p className={styles.selectedTitle}>
                         {selectedTitle}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 import BottomNavigation from '../components/BottomNavigation';
@@ -9,7 +9,6 @@ function Profile() {
     const navigate = useNavigate();
 
     const [userData, setUserData] = useState(null);
-    const [pageLoading, setPageLoading] = useState(true);
     
     const [isEditingUsername, setIsEditingUsername] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -22,21 +21,36 @@ function Profile() {
     const [usernameLoading, setUsernameLoading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
 
+    const isInitialLoad = useRef(true);
+    
     useEffect(() => {
-        setPageLoading(true);
-        api.get("/api/user/")
+        const controller = new AbortController();
+
+        api.get("/api/user/", {
+                    signal: controller.signal
+                })
             .then(res => {
                 setUserData(res.data);
                 setNewUsername(res.data.username);
             })
-            .catch(err => {
-                console.error("Не удалось получить данные пользователя:", err);
-                navigate("/login"); 
+            .catch((err) => {
+                console.error("Error:", err);
+                // Проверяем, не была ли ошибка вызвана отменой
+                if (err.name === 'CanceledError') {
+                    console.log('Запрос был отменен');
+                } else {
+                    alert(err);
+                }
             })
             .finally(() => {
-                setPageLoading(false);
+                isInitialLoad.current = false;
             });
-    }, [navigate]);
+
+    return () => {
+        // Когда компонент размонтируется, отменяем запрос
+        controller.abort();
+    };
+    }, []);
 
     const validateUsername = (username) => {
         const regex = /^[\w.@+-]+$/;
@@ -97,102 +111,98 @@ function Profile() {
         .finally(() => setPasswordLoading(false));
     };
 
-    if (pageLoading) {
-        return (
-            <div className={styles.pageContainer}>
-                <LoadingIndicator />
-            </div>
-        );
-    }
-
     return (
         <div className={styles.pageContainer}>
-            <div className={styles.profileCard}>
-                <h1 className={styles.usernameTitle}>Профиль</h1>
-                
-                <div className={styles.infoBlock}>
-                    <div className={styles.infoTextContainer}>
-                        <span className={styles.infoLabel}>Имя пользователя:</span>
-                        <strong className={styles.infoValue}>{userData?.username}</strong>
-                    </div>
-                    {/* Кнопка "Изменить" теперь просто переключатель */}
+            {isInitialLoad.current ? (
+                <LoadingIndicator />
+            ) : (
+                <div className={styles.profileCard}>
+                    <h1 className={styles.usernameTitle}>Профиль</h1>
                     
-                </div>
-                {!isEditingUsername && (
-                        <button className={styles.actionButton} onClick={() => setIsEditingUsername(true)}>
-                            Изменить имя пользователя
+                    <div className={styles.infoBlock}>
+                        <div className={styles.infoTextContainer}>
+                            <span className={styles.infoLabel}>Имя пользователя:</span>
+                            <strong className={styles.infoValue}>{userData?.username}</strong>
+                        </div>
+                        {/* Кнопка "Изменить" теперь просто переключатель */}
+                        
+                    </div>
+                    {!isEditingUsername && (
+                            <button className={styles.actionButton} onClick={() => setIsEditingUsername(true)}>
+                                Изменить имя пользователя
+                            </button>
+                        )}
+                    
+                    {/* --- ФОРМА РЕДАКТИРОВАНИЯ ИМЕНИ --- */}
+                    {isEditingUsername && (
+                        <form onSubmit={handleUpdateUsername} className={styles.editForm}>
+                            <h2 className={styles.formTitle}>Новое имя пользователя</h2>
+                            <input
+                                className={styles.inputField}
+                                type="text"
+                                value={newUsername}
+                                onChange={(e) => setNewUsername(e.target.value)}
+                            />
+                            <div className={styles.formActions}>
+                                <button type="submit" className={styles.saveButton} disabled={usernameLoading}>
+                                    {usernameLoading ? "Сохранение..." : "Сохранить имя"}
+                                </button>
+                                <button type="button" className={styles.cancelButton} onClick={() => setIsEditingUsername(false)}>
+                                    Отмена
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {/* --- БЛОК СМЕНЫ ПАРОЛЯ --- */}
+                    {!isChangingPassword && (
+                        <button
+                            className={styles.actionButton}
+                            onClick={() => setIsChangingPassword(true)}
+                        >
+                            Сменить пароль
                         </button>
                     )}
-                
-                {/* --- ФОРМА РЕДАКТИРОВАНИЯ ИМЕНИ --- */}
-                {isEditingUsername && (
-                    <form onSubmit={handleUpdateUsername} className={styles.editForm}>
-                        <h2 className={styles.formTitle}>Новое имя пользователя</h2>
-                        <input
-                            className={styles.inputField}
-                            type="text"
-                            value={newUsername}
-                            onChange={(e) => setNewUsername(e.target.value)}
-                        />
-                        <div className={styles.formActions}>
-                            <button type="submit" className={styles.saveButton} disabled={usernameLoading}>
-                                {usernameLoading ? "Сохранение..." : "Сохранить имя"}
-                            </button>
-                            <button type="button" className={styles.cancelButton} onClick={() => setIsEditingUsername(false)}>
-                                Отмена
-                            </button>
-                        </div>
-                    </form>
-                )}
 
-                {/* --- БЛОК СМЕНЫ ПАРОЛЯ --- */}
-                {!isChangingPassword && (
-                    <button
-                        className={styles.actionButton}
-                        onClick={() => setIsChangingPassword(true)}
-                    >
-                        Сменить пароль
-                    </button>
-                )}
-
-                {isChangingPassword && (
-                    <form onSubmit={handleChangePassword} className={styles.passwordForm}>
-                        <h2 className={styles.formTitle}>Смена пароля</h2>
-                        <input
-                            className={styles.inputField}
-                            type="password"
-                            value={oldPassword}
-                            onChange={(e) => setOldPassword(e.target.value)}
-                            placeholder="Старый пароль"
-                            required
-                        />
-                        <input
-                            className={styles.inputField}
-                            type="password"
-                            value={newPassword1}
-                            onChange={(e) => setNewPassword1(e.target.value)}
-                            placeholder="Новый пароль"
-                            required
-                        />
-                        <input
-                            className={styles.inputField}
-                            type="password"
-                            value={newPassword2}
-                            onChange={(e) => setNewPassword2(e.target.value)}
-                            placeholder="Повторите новый пароль"
-                            required
-                        />
-                        <div className={styles.formActions}>
-                            <button type="submit" className={styles.saveButton} disabled={passwordLoading}>
-                                {passwordLoading ? "Сохранение..." : "Сохранить пароль"}
-                            </button>
-                            <button type="button" className={styles.cancelButton} onClick={() => setIsChangingPassword(false)}>
-                                Отмена
-                            </button>
-                        </div>
-                    </form>
-                )}
-            </div>
+                    {isChangingPassword && (
+                        <form onSubmit={handleChangePassword} className={styles.passwordForm}>
+                            <h2 className={styles.formTitle}>Смена пароля</h2>
+                            <input
+                                className={styles.inputField}
+                                type="password"
+                                value={oldPassword}
+                                onChange={(e) => setOldPassword(e.target.value)}
+                                placeholder="Старый пароль"
+                                required
+                            />
+                            <input
+                                className={styles.inputField}
+                                type="password"
+                                value={newPassword1}
+                                onChange={(e) => setNewPassword1(e.target.value)}
+                                placeholder="Новый пароль"
+                                required
+                            />
+                            <input
+                                className={styles.inputField}
+                                type="password"
+                                value={newPassword2}
+                                onChange={(e) => setNewPassword2(e.target.value)}
+                                placeholder="Повторите новый пароль"
+                                required
+                            />
+                            <div className={styles.formActions}>
+                                <button type="submit" className={styles.saveButton} disabled={passwordLoading}>
+                                    {passwordLoading ? "Сохранение..." : "Сохранить пароль"}
+                                </button>
+                                <button type="button" className={styles.cancelButton} onClick={() => setIsChangingPassword(false)}>
+                                    Отмена
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
+            )}
 
             <button className={styles.logoutButton} onClick={() => navigate("/logout")}>
                 Выйти

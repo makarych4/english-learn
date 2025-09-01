@@ -61,7 +61,7 @@ useEffect(() => {
     const handleBeforeUnload = (e) => {
         if (isDirty) {
             e.preventDefault();
-            e.returnValue = ""; // Стандартное поведение для отображения диалога
+            e.returnValue = "";
         }
     };
 
@@ -92,34 +92,33 @@ useEffect(() => {
     }, [showAnnotationModal, confirmDeleteLineId]);
 
 useEffect(() => {
-    const initialLoad = async () => {
-    setLoading(true); // Показываем индикатор только при первой загрузке
-    await getLyrics(); // Вызываем нашу общую функцию
-    setLoading(false);
-};
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-initialLoad();
+    const initialLoad = async () => {
+        await getLyrics(signal);
+    };
+
+    initialLoad();
+
+    return () => {
+        controller.abort();
+    };
 }, [songId]);
 
-const getLyrics = async () => {
+const getLyrics = async (signal = null) => {
+    
     
     const isAuth = await ensureAuth(navigate);
     if (!isAuth) return;
 
-    api.get('/api/user/')
-        .then((res) => {
-            setIsVip(res.data.is_vip);
-        })
-        .catch((err) => {
-            console.log("Ошибка при получении пользователя", err);
-        });
-    
     try {
         // Запускаем все три запроса параллельно
-        const [lyricsRes, songRes, annotationsRes] = await Promise.all([
-            api.get(`/api/songLyrics/${songId}/`),
-            api.get(`/api/songs/${songId}/`),
-            api.get(`/api/songs/${songId}/annotations/`)
+        const [lyricsRes, songRes, annotationsRes, userRes] = await Promise.all([
+            api.get(`/api/songLyrics/${songId}/`, { signal }),
+            api.get(`/api/songs/${songId}/`, { signal }),
+            api.get(`/api/songs/${songId}/annotations/`, { signal }),
+            api.get('/api/user/', { signal })
         ]);
 
         // Устанавливаем все данные после того, как ВСЕ запросы завершились
@@ -134,9 +133,16 @@ const getLyrics = async () => {
         
         setAnnotations(annotationsRes.data);
 
+        setIsVip(userRes.data.is_vip);
+
+        setLoading(false);
     } catch (err) {
-        console.error("Ошибка при обновлении данных песни:", err);
-        alert("Не удалось обновить данные.");
+        if (err.name === 'CanceledError') {
+            console.log('Загрузка данных для SongLearn отменена');
+        } else {
+            console.error("Ошибка при обновлении данных песни:", err);
+            alert("Не удалось обновить данные.");
+        }
     }
 };
 
@@ -253,9 +259,9 @@ const handleSaveAnnotation = async () => {
             line_ids: selectedLineIds,
             note: currentAnnotationNote,
         });
-        setAnnotations(response.data);
-        // После успешного сохранения перезагружаем данные, чтобы увидеть аннотации
-        await getLyrics();
+        setLyrics(response.data.lyrics);
+        setAnnotations(response.data.annotations);
+
         // Сбрасываем состояния
         setShowAnnotationModal(false);
         setCurrentAnnotationNote("");
@@ -441,6 +447,7 @@ const handleSave = async () => {
 
     const isAuth = await ensureAuth(navigate);
     if (!isAuth) {
+        setIsSaving(false);
         return;
     }
 
@@ -452,9 +459,12 @@ const handleSave = async () => {
             source_url: sourceUrl,
         });
         const response = await api.post(`/api/songLyrics/update/${songId}/`, lyrics);
-        setLyrics(response.data.lyrics);
-        setAnnotations(response.data.annotations);
-        setIsDirty(false);
+        // ГРУППИРУЕМ ОБНОВЛЕНИЯ ВНУТРИ flushSync
+        flushSync(() => {
+            setLyrics(response.data.lyrics);
+            setAnnotations(response.data.annotations);
+            setIsDirty(false);
+        });
 
         if (!isPublished) alert("Изменения сохранены!");
         else alert("Изменения сохранены и видны другим пользователям!")

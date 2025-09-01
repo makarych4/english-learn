@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { href, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom"; 
 import { useNavigate } from "react-router-dom";
 import api from "../api";
@@ -17,7 +17,7 @@ import CloseIcon from "../assets/close2.svg";
 function SongLearn() {
     const [lyrics, setLyrics] = useState([]);
     const [songData, setSongData] = useState({});
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
     const [youtubeError, setYoutubeError] = useState(false);
     const { songId } = useParams();
@@ -31,8 +31,10 @@ function SongLearn() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
         const fetchData = async () => {
-            setLoading(true);
             setYoutubeError(false); 
             
             try {
@@ -52,30 +54,37 @@ function SongLearn() {
                 const annotationsUrl = `/api/songs/${songId}/annotations/`;
                 // 3. Выполняем запросы параллельно для скорости
                 const [lyricsResponse, songResponse, annotationsResponse] = await Promise.all([
-                    api.get(lyricsUrl),
-                    api.get(songUrl),
-                    api.get(annotationsUrl)
+                    api.get(lyricsUrl, { signal }),
+                    api.get(songUrl, { signal }),
+                    api.get(annotationsUrl, { signal })
                 ]);
 
                 // 4. Устанавливаем данные
                 setLyrics(lyricsResponse.data);
                 setSongData(songResponse.data);
                 setAnnotations(annotationsResponse.data);
+                setLoading(false);
                 
 
             } catch (error) {
-                // Обрабатываем ошибку, если любой из запросов не удался
-                // (например, 404, если песни не существует ни там, ни там)
-                console.error("Failed to fetch song data:", error);
-                alert("Не удалось загрузить данные песни. Возможно, она не существует или у вас нет к ней доступа.");
-                navigate("/"); // Перенаправляем на главную
+                if (error.name === 'CanceledError') {
+                    console.log('Загрузка данных для SongLearn отменена');
+                } else {
+                    console.error("Failed to fetch song data:", error);
+                    alert("Не удалось загрузить данные песни. Возможно, она не существует или у вас нет к ней доступа.");
+                    navigate("/");
+                }
             } finally {
-                setLoading(false);
+                
             }
         };
+        
 
-        fetchData(); // Вызываем асинхронную функцию
-    }, [songId]); // Зависимость только от songId
+        fetchData();
+        return () => {
+            controller.abort();
+        };
+    }, [songId]);
 
     const handleAnnotationClick = (annotationId) => {
         const annotation = annotations.find(anno => anno.id === annotationId);

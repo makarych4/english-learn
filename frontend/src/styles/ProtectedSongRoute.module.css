@@ -1,5 +1,6 @@
 .pageContainer {
-    padding: 2px;
-    font-family: sans-serif;
-    position: relative;
-  }
+  padding: 16px;
+  font-family: sans-serif;
+  position: relative;
+  margin-bottom: 430px;
+}

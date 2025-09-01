@@ -645,10 +645,18 @@ class AnnotationListCreateView(APIView):
             # 2. Привязываем строки к этой аннотации
             lines_to_annotate.update(annotation=annotation)
 
-        # Возвращаем не одну созданную аннотацию, а весь обновленный список
-        updated_annotations = Annotation.objects.filter(song=song)
-        serializer = AnnotationSerializer(updated_annotations, many=True)
-        return Response(serializer.data, status=201)
+        # После всех операций получаем актуальные данные
+        updated_lyrics = SongLyrics.objects.filter(song_id=song_id).order_by('line_number')
+        updated_annotations = Annotation.objects.filter(song_id=song_id)
+
+        # Сериализуем и отправляем оба набора данных
+        lyrics_serializer = SongLyricsSerializer(updated_lyrics, many=True)
+        annotations_serializer = AnnotationSerializer(updated_annotations, many=True)
+        
+        return Response({
+            'lyrics': lyrics_serializer.data,
+            'annotations': annotations_serializer.data,
+        }, status=status.HTTP_201_CREATED)
 
 class AnnotationDetailView(APIView):
     """
