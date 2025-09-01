@@ -36,7 +36,7 @@
 
 /* Стиль для строк, у которых есть аннотация */
 .lineWrapper.annotated {
-  background-color: rgba(0, 123, 255, 0.1); /* Легкий синий фон по умолчанию */
+  background-color: rgb(233, 233, 233); /* Легкий синий фон по умолчанию */
   cursor: pointer;
 }
 
