@@ -1,5 +1,4 @@
-// src/App.jsx
-
+import ScrollToTop from './components/ScrollToTop';
 // 1. Импортируем Outlet - это "место", куда роутер будет вставлять страницы
 import { Outlet } from "react-router-dom"; 
 
@@ -10,6 +9,7 @@ import "./styles/global.css";
 function App() {
   return (
     <>
+      <ScrollToTop />
       {/* 
         Здесь могла бы быть общая для всех страниц разметка,
         например, шапка сайта (<Header />).

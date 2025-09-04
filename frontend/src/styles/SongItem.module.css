@@ -9,7 +9,13 @@
     align-items: center; /* Выравниваем элементы по центру по вертикали */
 
     min-height: 38px;
+    gap: 20px;
   }
+
+.songInfo {
+  /* Заставляем этот блок сжиматься, если не хватает места */
+  min-width: 0; 
+}
   
 /* Для устройств с hover (ПК) */
 @media (hover: hover) {
@@ -25,18 +31,32 @@
   }
 }
   
-  .songTitle {
-    font-size: 1rem;
-    font-weight: bold;
-    margin: 0 0 4px;
-    color: #111;
-  }
+.songTitle {
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0 0 4px;
+  color: #111;
+
+  /* --- ЗАПРЕЩАЕМ ПЕРЕНОС ТЕКСТА НА НОВУЮ СТРОКУ --- */
+  white-space: nowrap;
+  /* --- СКРЫВАЕМ ВСЕ, ЧТО ВЫЛЕЗАЕТ ЗА ГРАНИЦЫ --- */
+  overflow: hidden;
+  /* --- ДОБАВЛЯЕМ МНОГОТОЧИЕ В КОНЦЕ --- */
+  text-overflow: ellipsis;
+}
   
-  .songArtist {
-    font-size: 0.9rem;
-    color: #555;
-    margin: 0;
-  }
+.songArtist {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0;
+
+  /* --- ЗАПРЕЩАЕМ ПЕРЕНОС ТЕКСТА НА НОВУЮ СТРОКУ --- */
+  white-space: nowrap;
+  /* --- СКРЫВАЕМ ВСЕ, ЧТО ВЫЛЕЗАЕТ ЗА ГРАНИЦЫ --- */
+  overflow: hidden;
+  /* --- ДОБАВЛЯЕМ МНОГОТОЧИЕ В КОНЦЕ --- */
+  text-overflow: ellipsis;
+}
 
   .versionCount {
   font-size: 1rem;

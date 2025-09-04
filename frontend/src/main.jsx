@@ -1,14 +1,14 @@
-// src/main.jsx
-
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-// 1. Импортируем новые инструменты для создания "data router"
+
+// инструменты для создания "data router"
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-// Импортируем наш основной компонент-макет
+// основной компонент-макет
 import App from './App.jsx';
 
-// Импортируем все наши страницы и компоненты
+// страницы и компоненты
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
@@ -21,7 +21,7 @@ import Profile from "./pages/Profile";
 import Search from "./pages/Search";
 import SongLearn from "./pages/SongLearn";
 
-// Импортируем Navigate для служебных роутов
+// Navigate для служебных роутов
 import { Navigate } from "react-router-dom";
 
 // Вспомогательные компоненты-функции для выхода и регистрации
@@ -35,8 +35,8 @@ function RegisterAndLogout() {
   return <Register />;
 }
 
-// 2. Создаем роутер с помощью createBrowserRouter
-// Это новый способ определения маршрутов в виде объекта.
+// Создаем роутер с помощью createBrowserRouter
+// Это способ определения маршрутов в виде объекта.
 const router = createBrowserRouter([
   {
     path: "/",
@@ -66,9 +66,7 @@ const router = createBrowserRouter([
         path: "edit-song/:songId",
         element: (
           <ProtectedRoute>
-            <ProtectedSongRoute>
-              <EditSong />
-            </ProtectedSongRoute>
+            <EditSong />
           </ProtectedRoute>
         ),
       },
@@ -96,9 +94,13 @@ const router = createBrowserRouter([
   },
 ]);
 
-// 3. Рендерим приложение, передавая ему наш новый роутер
+const queryClient = new QueryClient()
+
+// Рендерим приложение, передавая ему наш новый роутер
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   </StrictMode>,
 );

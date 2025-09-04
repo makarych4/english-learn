@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom"; // Главный инструмент
+import { useQuery } from '@tanstack/react-query';
+import { useSearchParams } from "react-router-dom";
 import Pagination from "./Pagination";
 import api from "../api";
 import SongItem from "./SongItem";
@@ -17,68 +18,39 @@ function SearchBar() {
     const selectedArtist = searchParams.get("selectedArtist") || "";
     const selectedTitle = searchParams.get("selectedTitle") || "";
 
-    // --- ШАГ 2: Локальное состояние, не попадающее в URL ---
-    const [songs, setSongs] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [totalPages, setTotalPages] = useState(0);
     // Отдельный стейт для поля ввода, чтобы не менять URL на каждое нажатие
     const [inputValue, setInputValue] = useState(query);
 
     const isTouchDevice = typeof window !== "undefined" && 
                       ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
-    // --- ШАГ 3: Обновленный useEffect для получения данных ---
-    // Этот эффект запускается КАЖДЫЙ РАЗ, когда меняется URL (searchParams)
-    useEffect(() => {
-        // контроллер отмены
-        const controller = new AbortController();
-        const getSongs = () => {
-            setLoading(true);
-            const trimmed = query.replaceAll(" ", "");
-            const resolvedSearchType = trimmed.length === 0 ? "all_songs_search" : "reduce_songs_search";
-            
-            const params = {
-                query,
-                page,
-                search_type: resolvedSearchType,
-            };
-            if (viewMode === "artists") params.artist_group = true;
-            if (selectedArtist) params.selected_artist = selectedArtist;
-            if (selectedTitle) params.selected_title = selectedTitle;
-
-            api.get("/api/songs/public/", {
-                params,
-                // Передаем сигнал от контроллера в axios
-                signal: controller.signal
-            })
-                .then((res) => {
-                    setSongs(res.data.results);
-                    setTotalPages(res.data.count ? Math.ceil(res.data.count / 10) : 0);
-                    setLoading(false);
-                })
-                .catch((err) => {
-                    // Проверяем, не была ли ошибка вызвана отменой
-                    if (err.name === 'CanceledError') {
-                        console.log('Запрос со страницы Поиска был отменен');
-                    } else {
-                        alert(err);
-                    }
-                })
-                .finally(() => {
-                    //isInitialLoad.current = false;
-                });
+    // запускается КАЖДЫЙ РАЗ, когда меняется URL (searchParams)
+    const fetchSongs = async ({ signal }) => {
+        const trimmed = query.replaceAll(" ", "");
+        const resolvedSearchType = trimmed.length === 0 ? "all_songs_search" : "reduce_songs_search";
+        
+        const params = {
+            query,
+            page,
+            search_type: resolvedSearchType,
         };
+        if (viewMode === "artists") params.artist_group = true;
+        if (selectedArtist) params.selected_artist = selectedArtist;
+        if (selectedTitle) params.selected_title = selectedTitle;
 
-        getSongs();
+        // Передаем signal дальше в axios для автоматической отмены
+        const { data } = await api.get("/api/songs/public/", { params, signal });
+        return data;
+    };
 
-        // Функция очистки
-        return () => {
-            // Когда компонент размонтируется, отменяем запрос
-            controller.abort();
-        };
-    }, [searchParams]); // Зависимость только от searchParams!
+    const { data, isLoading, isError, error } = useQuery({
+        queryKey: ['songs', 'public', { query, page, viewMode, selectedArtist, selectedTitle }],
+        queryFn: fetchSongs,
+        staleTime: 10 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
+    });
 
-    // --- ШАГ 4: Эффект для задержки поиска (Debouncing) ---
+    // Эффект для задержки поиска
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             // Если значение в инпуте отличается от того, что в URL, обновляем URL
@@ -106,6 +78,7 @@ function SearchBar() {
         return () => clearTimeout(timeoutId);
     }, [inputValue]);
 
+    // useEffect для синхронизации инпута с URL
      useEffect(() => {
         // Если значение в URL (query) не совпадает со значением в инпуте,
         // обновляем инпут, чтобы он отражал URL.
@@ -168,6 +141,16 @@ function SearchBar() {
         setInputValue("");
     };
 
+    const songs = data?.results || [];
+    const totalPages = data?.count ? Math.ceil(data.count / 10) : 0;
+    
+    if (isError) {
+        // Проверяем, что ошибка не из-за отмены запроса
+        if (error.name !== 'CanceledError') {
+             return <span>Произошла ошибка: {error.message}</span>;
+        }
+    }
+
     return (
         <div className={styles.searchBar}>
             <div className={styles.inputContainer}>
@@ -223,7 +206,7 @@ function SearchBar() {
                 </div>
             )}
 
-            {loading ? (
+            {isLoading ? (
                 <LoadingIndicator />
             ) : (
                 <>
@@ -266,7 +249,7 @@ function SearchBar() {
                 </>
             )}
 
-            {(totalPages > 1 && !loading)  && (
+            {(totalPages > 1 && !isLoading)  && (
                 <Pagination
                     pageCount={totalPages}
                     onPageChange={handlePageClick}

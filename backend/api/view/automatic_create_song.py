@@ -1,12 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from ..models import Song, SongLyrics
+from ..models import Song, SongLyrics, Annotation
 from ..utils.lyrics_tools import get_genius
 from ..utils.youtube_tools import get_youtube_music_id
 #from ..utils.translate_tools import batch_translate_lines
 from ..utils.translate_yandex import batch_translate_lines
-from ..serializers import SongLyricsSerializer
+from ..serializers import SongLyricsSerializer, SongSerializer
 
 """Создание строк песни, названия, исполнителя с API Genius, и youtube_id"""
 class CreateSongWithGeniusView(APIView):
@@ -40,6 +40,7 @@ class CreateSongWithGeniusView(APIView):
                 song.artist = artist
                 song.youtube_id = video_id
                 song.save()
+                Annotation.objects.filter(song=song).delete()
                 SongLyrics.objects.filter(song=song).delete()
             except Song.DoesNotExist:
                 return Response({"error": "Песня не найдена"}, status=status.HTTP_404_NOT_FOUND)
@@ -60,14 +61,13 @@ class CreateSongWithGeniusView(APIView):
 
         # Получаем созданные объекты с их ID
         created_lyrics = SongLyrics.objects.filter(song=song).order_by('line_number')
+        song_serializer = SongSerializer(song)
         lyrics_serializer = SongLyricsSerializer(created_lyrics, many=True)
 
         return Response({
             "message": "Песня создана",
             "song_id": song.id,
-            "title": title,
-            "artist": artist,
-            "youtube_id": video_id,
+            "song": song_serializer.data,
             "lyrics": lyrics_serializer.data
         }, status=status.HTTP_201_CREATED)
 

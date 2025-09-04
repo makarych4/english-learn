@@ -14,15 +14,17 @@ async function ensureAuth(navigate) {
     try {
         const decoded = jwtDecode(accessToken);
         const now = Date.now() / 1000;
+        const gracePeriod = 10; 
 
-        if (decoded.exp < now) {
+        if (decoded.exp < now + gracePeriod) {
+            console.log("Access token expired or expiring soon, refreshing...");
             const res = await api.post("/api/token/refresh/", { refresh: refreshToken });
 
             if (res.status === 200) {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
                 return true;
             } else {
-                if (navigate) navigate("/login");
+                if (navigate) navigate("/logout");
                 return false;
             }
         }
@@ -30,6 +32,7 @@ async function ensureAuth(navigate) {
         return true;
     } catch (error) {
         console.log("Auth error:", error);
+        localStorage.clear();
         if (navigate) navigate("/login");
         return false;
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from '@tanstack/react-query';
 import api from "../api";
 import BottomNavigation from '../components/BottomNavigation';
 import WordFrequencyChart from '../components/WordFrequencyChart';
@@ -16,6 +17,7 @@ function Home() {
     const [showChart, setShowChart] = useState(false);
     const [userSongCount, setUserSongCount] = useState(undefined);
 
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
     // лоадер, пока не узнали число песен
     // const isLoadingCount = userSongCount === null;
@@ -53,6 +55,8 @@ function Home() {
             .post("/api/songs/", { title, artist})
             .then((res) => {
                 if (res.status === 201) {
+                    queryClient.invalidateQueries({ queryKey: ['totalSongsCount'] });
+                    queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
                     const newSongId = res.data.id; 
                     navigate(`/edit-song/${newSongId}`);
                 }

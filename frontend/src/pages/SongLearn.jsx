@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useLocation } from "react-router-dom"; 
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom"; 
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import api from "../api";
 import SongLyricsLine from "../components/SongLyricsLine";
 import YouTubePlayer from "../components/YouTubePlayer";
@@ -15,76 +15,59 @@ import EditIcon from "../assets/pencil.svg";
 import CloseIcon from "../assets/close2.svg";
 
 function SongLearn() {
-    const [lyrics, setLyrics] = useState([]);
-    const [songData, setSongData] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [isOwner, setIsOwner] = useState(false);
     const [youtubeError, setYoutubeError] = useState(false);
     const { songId } = useParams();
 
-    const [annotations, setAnnotations] = useState([]);
+    //const [annotations, setAnnotations] = useState([]);
     const [hoveredAnnotationId, setHoveredAnnotationId] = useState(null);
     const [activeAnnotation, setActiveAnnotation] = useState(null); // Для открытого окна
 
     const location = useLocation();
-
     const navigate = useNavigate();
+    const queryKey = ['songLearn', songId];
+    const queryClient = useQueryClient();
 
-    useEffect(() => {
-        const controller = new AbortController();
-        const signal = controller.signal;
+    const fetchSongLearnData = async ({ signal }) => {
+        const isOwner = await checkOwnership(songId);
 
-        const fetchData = async () => {
-            setYoutubeError(false); 
-            
-            try {
-                // 1. Сначала определяем, является ли пользователь владельцем
-                const ownerStatus = await checkOwnership(songId);
-                setIsOwner(ownerStatus);
+        const lyricsUrl = isOwner ? `/api/songLyrics/${songId}/` : `/api/songLyrics/public/${songId}/`;
+        const songUrl = isOwner ? `/api/songs/${songId}/` : `/api/songs/public/${songId}/`;
+        const annotationsUrl = `/api/songs/${songId}/annotations/`;
 
-                // 2. Формируем URL на основе полученного статуса
-                const lyricsUrl = ownerStatus
-                    ? `/api/songLyrics/${songId}/`
-                    : `/api/songLyrics/public/${songId}/`;
+        const [lyricsRes, songRes, annotationsRes] = await Promise.all([
+            api.get(lyricsUrl, { signal }),
+            api.get(songUrl, { signal }),
+            api.get(annotationsUrl, { signal })
+        ]);
 
-                const songUrl = ownerStatus
-                    ? `/api/songs/${songId}/`
-                    : `/api/songs/public/${songId}/`;
-
-                const annotationsUrl = `/api/songs/${songId}/annotations/`;
-                // 3. Выполняем запросы параллельно для скорости
-                const [lyricsResponse, songResponse, annotationsResponse] = await Promise.all([
-                    api.get(lyricsUrl, { signal }),
-                    api.get(songUrl, { signal }),
-                    api.get(annotationsUrl, { signal })
-                ]);
-
-                // 4. Устанавливаем данные
-                setLyrics(lyricsResponse.data);
-                setSongData(songResponse.data);
-                setAnnotations(annotationsResponse.data);
-                setLoading(false);
-                
-
-            } catch (error) {
-                if (error.name === 'CanceledError') {
-                    console.log('Загрузка данных для SongLearn отменена');
-                } else {
-                    console.error("Failed to fetch song data:", error);
-                    alert("Не удалось загрузить данные песни. Возможно, она не существует или у вас нет к ней доступа.");
-                    navigate("/");
-                }
-            } finally {
-                
-            }
+        return {
+            lyrics: lyricsRes.data,
+            song: songRes.data,
+            annotations: annotationsRes.data,
+            isOwner: isOwner,
         };
-        
+    };
 
-        fetchData();
-        return () => {
-            controller.abort();
-        };
-    }, [songId]);
+    const { data, isLoading, isError, error } = useQuery({
+        queryKey: queryKey,
+        queryFn: fetchSongLearnData,
+        staleTime: 10 * 60 * 1000,
+        cacheTime: 10 * 60 * 1000,
+    });
+
+    if (isError && error.name !== 'CanceledError') {
+        alert("Не удалось загрузить данные песни. Возможно, она не существует.");
+        navigate("/");
+        return null; // Рендерим ничего во время редиректа
+    }
+
+    // Используем деструктуризацию с значениями по умолчанию для безопасности
+    const {
+        lyrics = [],
+        song: songData = {},
+        annotations = [],
+        isOwner = false,
+    } = data || {}; // `|| {}` на случай, если data еще undefined
 
     const handleAnnotationClick = (annotationId) => {
         const annotation = annotations.find(anno => anno.id === annotationId);
@@ -99,10 +82,8 @@ function SongLearn() {
 
     const handleEditOrClone = async () => {
         if (isOwner) {
-            // --- ЛОГИКА ДЛЯ ВЛАДЕЛЬЦА ---
-            // Пользователь должен быть авторизован. Если нет - перенаправляем.
             const isAuth = await ensureAuth(navigate);
-            if (!isAuth) return; // ensureAuth уже сделал перенаправление
+            if (!isAuth) return;
 
             // Если все в порядке, переходим на страницу редактирования
             navigate(`/edit-song/${songId}`);
@@ -121,6 +102,8 @@ function SongLearn() {
                     api.post(`/api/songs/clone/${songId}/`)
                         .then((res) => {
                             const newSongId = res.data.id;
+                            queryClient.invalidateQueries({ queryKey: ['totalSongsCount'] });
+                            queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
                             alert("Копия песни успешно создана!");
                             navigate(`/edit-song/${newSongId}`);
                         })
@@ -142,7 +125,7 @@ function SongLearn() {
 
     return (
         <div className={styles.pageContainer}>
-            {loading ? (
+            {isLoading ? (
                 <LoadingIndicator />
             ) : (
                 <>

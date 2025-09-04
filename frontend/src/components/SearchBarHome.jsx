@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom"; // Главный инструмент
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from '@tanstack/react-query';
 import Pagination from "./Pagination";
 import api from "../api";
 import SongChange from "./SongChange";
@@ -10,7 +11,6 @@ import CloseIcon from "../assets/close2.svg";
 function SearchBar({ onCountLoad }) {
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // --- ШАГ 1: URL - единственный источник правды ---
     // Читаем все параметры из URL. Если их нет, ставим значения по умолчанию.
     const query = searchParams.get("query") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -18,88 +18,59 @@ function SearchBar({ onCountLoad }) {
     const selectedArtist = searchParams.get("selectedArtist") || "";
     const selectedTitle = searchParams.get("selectedTitle") || "";
 
-    // --- ШАГ 2: Локальное состояние, не попадающее в URL ---
-    const [songs, setSongs] = useState([]);
-    const [loading, setLoading] = useState(false);
-    //const [initialLoading, setInitialLoading] = useState(true);
-    const [totalPages, setTotalPages] = useState(0);
     // Отдельный стейт для поля ввода, чтобы не менять URL на каждое нажатие
     const [inputValue, setInputValue] = useState(query);
 
     const isTouchDevice = typeof window !== "undefined" && 
                       ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
-    const isInitialLoad = useRef(true); 
-    // --- ШАГ 3: Обновленный useEffect для получения данных ---
-    // Этот эффект запускается КАЖДЫЙ РАЗ, когда меняется URL (searchParams)
+    //const isInitialLoad = useRef(true); 
+
+    const { data: totalCountData, isLoading: isInitialLoad } = useQuery({
+        // Статичный ключ, который не меняется
+        queryKey: ['totalSongsCount'],
+        // Функция для загрузки
+        queryFn: async () => {
+            const { data } = await api.get("/api/songs/count/");
+            return data;
+        },
+        // Ключевые опции:
+        staleTime: Infinity,// никогда не запрашивать их снова
+        refetchOnWindowFocus: false, // Не перезапрашивать при фокусе на окне
+        cacheTime: 10 * 60 * 1000,
+    });
+
+    const fetchSongs = async ({ signal }) => {
+        const trimmed = query.replaceAll(" ", "");
+        const resolvedSearchType = trimmed.length === 0 ? "all_songs_search" : "reduce_songs_search";
+        
+        const params = {
+            query,
+            page,
+            search_type: resolvedSearchType,
+        };
+        if (viewMode === "artists") params.artist_group = true;
+        if (selectedArtist) params.selected_artist = selectedArtist;
+        if (selectedTitle) params.selected_title = selectedTitle;
+
+        const { data } = await api.get("/api/songs/", { params, signal });
+        return data;
+    };
+
+    const { data, isLoading, isError, error } = useQuery({
+        // Динамический ключ, зависит от URL
+        queryKey: ['songs', 'user', { query, page, viewMode, selectedArtist, selectedTitle }],
+        queryFn: fetchSongs,
+        staleTime: Infinity,
+        cacheTime: 10 * 60 * 1000,
+    });
+    
+    // useEffect для передачи общего количества песен в родительский компонент
     useEffect(() => {
-        // контроллер отмены
-        const controller = new AbortController();
-
-        const getSongsAndCount = () => {
-            setLoading(true);
-            const trimmed = query.replaceAll(" ", "");
-            const resolvedSearchType = trimmed.length === 0 ? "all_songs_search" : "reduce_songs_search";
-            
-            const params = {
-                query,
-                page,
-                search_type: resolvedSearchType,
-            };
-            if (viewMode === "artists") params.artist_group = true;
-            if (selectedArtist) params.selected_artist = selectedArtist;
-            if (selectedTitle) params.selected_title = selectedTitle;
-
-            const promises = [
-                api.get("/api/songs/", {
-                    params,
-                    // Передаем сигнал от контроллера в axios
-                    signal: controller.signal
-                })
-            ];
-
-            if (isInitialLoad.current) {
-                promises.push(api.get("/api/songs/count/"));
-            }
-
-            Promise.all(promises)
-                .then((responses) => {
-                    const songsRes = responses[0];
-                    setSongs(songsRes.data.results);
-                    setTotalPages(songsRes.data.count ? Math.ceil(songsRes.data.count / 10) : 0);
-                    
-                    // Сообщаем родителю общее количество песен
-                    if (isInitialLoad.current) {
-                        const countRes = responses[1]; // Ответ на количество будет вторым
-                        onCountLoad(countRes.data.song_count);
-                        isInitialLoad.current = false; // "Выключаем" флаг навсегда
-                    }
-                })
-                .catch((err) => {
-                    console.error("Error:", err);
-                    if (err.name === 'CanceledError') {
-                        console.log('Запрос был отменен');
-                    } else {
-                        alert(err);
-                        if (isInitialLoad.current) {
-                            onCountLoad(0); // На случай ошибки при первой загрузке
-                            isInitialLoad.current = false;
-                        }
-                    }
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-        };
-
-        getSongsAndCount();
-
-        // Функция очистки
-        return () => {
-            // Когда компонент размонтируется, отменяем запрос
-            controller.abort();
-        };
-    }, [searchParams, onCountLoad]);
+        if (totalCountData && onCountLoad) {
+            onCountLoad(totalCountData.song_count);
+        }
+    }, [totalCountData, onCountLoad]);
 
     // --- ШАГ 4: Эффект для задержки поиска (Debouncing) ---
     useEffect(() => {
@@ -191,7 +162,10 @@ function SearchBar({ onCountLoad }) {
         setInputValue("");
     };
 
-    if (isInitialLoad.current)
+    const songs = data?.results || [];
+    const totalPages = data?.count ? Math.ceil(data.count / 10) : 0;
+
+    if (isInitialLoad)
     {
         return <LoadingIndicator />;
     }
@@ -250,7 +224,7 @@ function SearchBar({ onCountLoad }) {
                 </div>
             )}
 
-            {loading ? (
+            {isLoading ? (
                 <LoadingIndicator />
             ) : (
                 <>
@@ -292,7 +266,7 @@ function SearchBar({ onCountLoad }) {
                 </>
             )}
 
-            {(totalPages > 1 && !loading)  && (
+            {(totalPages > 1 && !isLoading)  && (
                 <Pagination
                     pageCount={totalPages}
                     onPageChange={handlePageClick}

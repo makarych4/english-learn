@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from "../api";
 import BottomNavigation from '../components/BottomNavigation';
 import LoadingIndicator from "../components/LoadingIndicator";
@@ -7,8 +8,21 @@ import styles from "../styles/Profile.module.css";
 
 function Profile() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const queryKey = ['currentUser'];
 
-    const [userData, setUserData] = useState(null);
+    const fetchUserData = async ({ signal }) => {
+        const { data } = await api.get("/api/user/", { signal });
+        return data;
+    };
+
+    const { data: userData, isLoading, isError, error } = useQuery({
+        queryKey: queryKey, 
+        queryFn: fetchUserData,
+        staleTime: Infinity,
+        cacheTime: 1000 * 60 * 60,
+        refetchOnWindowFocus: false,
+    });
     
     const [isEditingUsername, setIsEditingUsername] = useState(false);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -21,36 +35,24 @@ function Profile() {
     const [usernameLoading, setUsernameLoading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
 
-    const isInitialLoad = useRef(true);
-    
     useEffect(() => {
-        const controller = new AbortController();
+        // Когда данные о пользователе загружены, обновляем поле для редактирования
+        if (userData) {
+            setNewUsername(userData.username);
+        }
+    }, [userData]);
 
-        api.get("/api/user/", {
-                    signal: controller.signal
-                })
-            .then(res => {
-                setUserData(res.data);
-                setNewUsername(res.data.username);
-            })
-            .catch((err) => {
-                console.error("Error:", err);
-                // Проверяем, не была ли ошибка вызвана отменой
-                if (err.name === 'CanceledError') {
-                    console.log('Запрос был отменен');
-                } else {
-                    alert(err);
-                }
-            })
-            .finally(() => {
-                isInitialLoad.current = false;
-            });
-
-    return () => {
-        // Когда компонент размонтируется, отменяем запрос
-        controller.abort();
-    };
-    }, []);
+    if (isError) {
+        if (error.name !== 'CanceledError') {
+             // Если ошибка авторизации, перенаправляем на логин
+            if (error.response?.status === 401) {
+                navigate('/login');
+                return null;
+            }
+            alert("Не удалось загрузить данные профиля.");
+        }
+        return null;
+    }
 
     const validateUsername = (username) => {
         const regex = /^[\w.@+-]+$/;
@@ -70,7 +72,11 @@ function Profile() {
         api.patch("/api/user/", { username: newUsername })
             .then(res => {
                 alert("Имя пользователя успешно изменено!");
-                setUserData(prev => ({ ...prev, username: res.data.username }));
+                queryClient.setQueryData(queryKey, (oldData) => ({
+                    ...oldData,
+                    username: res.data.username
+                }));
+
                 setIsEditingUsername(false);
             })
             .catch(err => {
@@ -111,9 +117,15 @@ function Profile() {
         .finally(() => setPasswordLoading(false));
     };
 
+    const handleLogout = () => {
+        queryClient.removeQueries({ queryKey: queryKey });
+        
+        navigate("/logout");
+    };
+
     return (
         <div className={styles.pageContainer}>
-            {isInitialLoad.current ? (
+            {isLoading ? (
                 <LoadingIndicator />
             ) : (
                 <div className={styles.profileCard}>
@@ -204,7 +216,7 @@ function Profile() {
                 </div>
             )}
 
-            <button className={styles.logoutButton} onClick={() => navigate("/logout")}>
+            <button className={styles.logoutButton} onClick={handleLogout}>
                 Выйти
             </button>
             <BottomNavigation active="profile" />

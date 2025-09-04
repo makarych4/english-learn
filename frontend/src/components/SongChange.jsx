@@ -40,7 +40,7 @@ function SongChange({ song, onClick, activeTab }) {
                     <p className={styles.centeredTitle}>{song.title}</p>
 
                 ) : (
-                        <div>
+                        <div className={styles.songInfo}>
                             <p className={styles.songTitle}>{song.title}</p>
                             <p className={styles.songArtist}>{song.artist}</p>
                         </div>)}
