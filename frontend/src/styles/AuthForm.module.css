@@ -2,6 +2,7 @@
   padding: 16px;
   font-family: sans-serif;
   position: relative;
+  min-height: 100vh;
 }
 
 .formContainer {
@@ -28,6 +29,7 @@
 .formInput{
   border: 1px solid #ccc;
   margin-bottom: 1rem;
+  scroll-margin-top: 20vh;
 }
 
 .formButton {

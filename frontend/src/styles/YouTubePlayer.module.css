@@ -83,10 +83,10 @@
 
 .fixed {
   position: fixed;
-  bottom: 47px;
+  bottom: 46px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1000;
+  z-index: 80;
 }
 
 .hidden {
@@ -102,7 +102,6 @@
   opacity: 0;
   pointer-events: none;
   position: fixed; /* или absolute, чтобы не занимать место */
-  bottom: 50px; /* можно подогнать позицию, чтобы не мешало */
   left: 50%;
   transform: translateX(-50%);
   transition: opacity 0.3s ease;
