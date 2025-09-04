@@ -19,11 +19,7 @@ function Home() {
 
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    // лоадер, пока не узнали число песен
-    // const isLoadingCount = userSongCount === null;
-    // const hasSongs = userSongCount > 0;
 
-    const hasSongs = userSongCount !== undefined && userSongCount > 0;
     const handleCountLoad = useCallback((count) => {
         setUserSongCount(count);
     }, []);
@@ -85,15 +81,7 @@ function Home() {
 
                     <h1>Мои Песни</h1>
 
-                    <div style={{ display: userSongCount === 0 ? 'none' : 'block' }}>
-                        <SearchBarHome onCountLoad={handleCountLoad} />
-                    </div>
-
-                    {userSongCount === 0 && (
-                        <div className={styles.noSongsMessage}>
-                            <h3>Вы ещё не создали ни одной песни</h3>
-                        </div>
-                    )}
+                    <SearchBarHome onCountLoad={handleCountLoad} />
 
                     <button className={`${styles.fab} fixed-class`} onClick={() => setShowForm(true)}>
                         +

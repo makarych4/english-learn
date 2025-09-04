@@ -165,9 +165,13 @@ function SearchBar({ onCountLoad }) {
     const songs = data?.results || [];
     const totalPages = data?.count ? Math.ceil(data.count / 10) : 0;
 
-    if (isInitialLoad)
-    {
-        return <LoadingIndicator />;
+    if (isInitialLoad) return <LoadingIndicator />; // пока нет totalSongsCount
+    if (totalCountData?.song_count === 0) {
+        return (
+            <div className={styles.noSongsMessage}>
+                <h3>Вы ещё не создали ни одной песни</h3>
+            </div>
+        );
     }
 
     return (
