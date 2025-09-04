@@ -15,14 +15,9 @@ function Home() {
     const [artist, setArtist] = useState("");
     const [showForm, setShowForm] = useState(false);
     const [showChart, setShowChart] = useState(false);
-    const [userSongCount, setUserSongCount] = useState(undefined);
 
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-
-    const handleCountLoad = useCallback((count) => {
-        setUserSongCount(count);
-    }, []);
 
     useEffect(() => {
         // Проверяем, должен ли быть показан оверлей
@@ -81,7 +76,7 @@ function Home() {
 
                     <h1>Мои Песни</h1>
 
-                    <SearchBarHome onCountLoad={handleCountLoad} />
+                    <SearchBarHome/>
 
                     <button className={`${styles.fab} fixed-class`} onClick={() => setShowForm(true)}>
                         +

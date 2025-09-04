@@ -8,7 +8,7 @@ import LoadingIndicator from "./LoadingIndicator";
 import styles from "../styles/SearchBarHome.module.css";
 import CloseIcon from "../assets/close2.svg";
 
-function SearchBar({ onCountLoad }) {
+function SearchBar() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Читаем все параметры из URL. Если их нет, ставим значения по умолчанию.
@@ -64,13 +64,6 @@ function SearchBar({ onCountLoad }) {
         staleTime: Infinity,
         cacheTime: 10 * 60 * 1000,
     });
-    
-    // useEffect для передачи общего количества песен в родительский компонент
-    useEffect(() => {
-        if (totalCountData && onCountLoad) {
-            onCountLoad(totalCountData.song_count);
-        }
-    }, [totalCountData, onCountLoad]);
 
     // --- ШАГ 4: Эффект для задержки поиска (Debouncing) ---
     useEffect(() => {

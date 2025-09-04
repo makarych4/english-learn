@@ -413,6 +413,7 @@ const handleDeleteSong = async () => {
     try {
         const res = await api.delete(`/api/songs/delete/${songId}/`);
         if (res.status === 204) {
+            queryClient.removeQueries({ queryKey: ['totalSongsCount'] });
             await queryClient.invalidateQueries({ queryKey: ['totalSongsCount'] });
             await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
             await queryClient.invalidateQueries({ queryKey: ['songs', 'public'] });
