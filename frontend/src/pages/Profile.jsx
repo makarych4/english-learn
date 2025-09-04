@@ -120,6 +120,7 @@ function Profile() {
     const handleLogout = () => {
         queryClient.removeQueries({ queryKey: queryKey });
         queryClient.removeQueries({ queryKey: ["songs", "user"] });
+        queryClient.removeQueries({ queryKey: ['totalSongsCount'] });
         navigate("/logout");
     };
 
