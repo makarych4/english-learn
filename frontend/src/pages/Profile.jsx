@@ -118,9 +118,24 @@ function Profile() {
     };
 
     const handleLogout = () => {
-        queryClient.removeQueries({ queryKey: queryKey });
-        queryClient.removeQueries({ queryKey: ["songs", "user"] });
-        queryClient.removeQueries({ queryKey: ['totalSongsCount'] });
+        // Очищаем весь кэш, КРОМЕ публичных списков песен
+        queryClient.removeQueries({
+            predicate: (query) => {
+                // query.queryKey - это ключ кэша, например ['songLearn', '123']
+                const queryKey = query.queryKey;
+                
+                // Мы НЕ удаляем кэш, если его ключ начинается с ['songs', 'public']
+                // queryKey[0] === 'songs'
+                // queryKey[1] === 'public'
+                const isPublicSongsQuery = 
+                    Array.isArray(queryKey) &&
+                    queryKey[0] === 'songs' &&
+                    queryKey[1] === 'public';
+                    
+                // Возвращаем true для ВСЕХ ОСТАЛЬНЫХ ключей, чтобы они были удалены.
+                return !isPublicSongsQuery;
+            }
+        });
         navigate("/logout");
     };
 

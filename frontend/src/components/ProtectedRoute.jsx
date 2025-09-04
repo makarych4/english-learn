@@ -53,7 +53,7 @@ function ProtectedRoute({ children }) {
     if (isAuthorized === null) {
         return (
             <>
-                <LoadingIndicator />;
+                <LoadingIndicator />
                 <BottomNavigation active="home" />
             </>
         );

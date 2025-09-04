@@ -21,6 +21,7 @@ function SongLearn() {
     //const [annotations, setAnnotations] = useState([]);
     const [hoveredAnnotationId, setHoveredAnnotationId] = useState(null);
     const [activeAnnotation, setActiveAnnotation] = useState(null); // Для открытого окна
+    const [loading, setLoading] = useState(false);
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -101,9 +102,17 @@ function SongLearn() {
                     setLoading(true);
                     api.post(`/api/songs/clone/${songId}/`)
                         .then((res) => {
-                            const newSongId = res.data.id;
+                            const countData = queryClient.getQueryData(['totalSongsCount']);
+                            const currentCount = countData?.song_count;
+
+                            if (currentCount === 0 || currentCount === undefined) {
+                                queryClient.removeQueries({ queryKey: ['songs', 'user'] });
+                            } else {
+                                queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+                            }
                             queryClient.invalidateQueries({ queryKey: ['totalSongsCount'] });
-                            queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+
+                            const newSongId = res.data.id;
                             alert("Копия песни успешно создана!");
                             navigate(`/edit-song/${newSongId}`);
                         })
@@ -125,7 +134,7 @@ function SongLearn() {
 
     return (
         <div className={styles.pageContainer}>
-            {isLoading ? (
+            {isLoading || loading ? (
                 <LoadingIndicator />
             ) : (
                 <>

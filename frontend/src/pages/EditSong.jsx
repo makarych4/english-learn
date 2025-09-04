@@ -413,10 +413,23 @@ const handleDeleteSong = async () => {
     try {
         const res = await api.delete(`/api/songs/delete/${songId}/`);
         if (res.status === 204) {
-            queryClient.removeQueries({ queryKey: ['totalSongsCount'] });
+            const countData = queryClient.getQueryData(['totalSongsCount']);
+            const currentCount = countData?.song_count;
+
+            if (currentCount === 1 || currentCount === undefined) {
+                queryClient.removeQueries({ queryKey: ['songs', 'user'] });
+                queryClient.removeQueries({ queryKey: ['totalSongsCount'] });
+            } else {
+                queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
+                queryClient.invalidateQueries({ queryKey: ['totalSongsCount'] });
+            }
+            
             await queryClient.invalidateQueries({ queryKey: ['totalSongsCount'] });
             await queryClient.invalidateQueries({ queryKey: ['songs', 'user'] });
             await queryClient.invalidateQueries({ queryKey: ['songs', 'public'] });
+
+            queryClient.removeQueries({ queryKey: ['songLearn', songId] });
+            queryClient.removeQueries({ queryKey: ['editSong', songId] });
             alert("Песня успешно удалена!");
             flushSync(() => {
                 setIsDirty(false);

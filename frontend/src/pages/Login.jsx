@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from '@tanstack/react-query';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 import BottomNavigation from '../components/BottomNavigation';
 import LoadingIndicator from "../components/LoadingIndicator";
@@ -10,6 +11,7 @@ function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
 
     const name = "Вход";
@@ -45,6 +47,25 @@ function Login() {
             const res = await api.post(route, { username, password })
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
+            
+            // Очищаем весь кэш, КРОМЕ публичных списков песен
+            queryClient.removeQueries({
+                predicate: (query) => {
+                    // query.queryKey - это ключ кэша, например ['songLearn', '123']
+                    const queryKey = query.queryKey;
+                    
+                    // Мы НЕ удаляем кэш, если его ключ начинается с ['songs', 'public']
+                    // queryKey[0] === 'songs'
+                    // queryKey[1] === 'public'
+                    const isPublicSongsQuery = 
+                        Array.isArray(queryKey) &&
+                        queryKey[0] === 'songs' &&
+                        queryKey[1] === 'public';
+                        
+                    // Возвращаем true для ВСЕХ ОСТАЛЬНЫХ ключей, чтобы они были удалены.
+                    return !isPublicSongsQuery;
+                }
+            });
             navigate("/")
         } catch (error) {
             if (error.response && error.response.status === 401) {

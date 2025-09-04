@@ -26,18 +26,16 @@ function SearchBar() {
 
     //const isInitialLoad = useRef(true); 
 
-    const { data: totalCountData, isLoading: isInitialLoad } = useQuery({
-        // Статичный ключ, который не меняется
+    const { data: totalCountData, isLoading: isInitialLoad, isRefetching: isCountRefetching} = useQuery({
         queryKey: ['totalSongsCount'],
-        // Функция для загрузки
         queryFn: async () => {
             const { data } = await api.get("/api/songs/count/");
             return data;
         },
-        // Ключевые опции:
         staleTime: Infinity,// никогда не запрашивать их снова
         refetchOnWindowFocus: false, // Не перезапрашивать при фокусе на окне
         cacheTime: 10 * 60 * 1000,
+        
     });
 
     const fetchSongs = async ({ signal }) => {
@@ -158,7 +156,14 @@ function SearchBar() {
     const songs = data?.results || [];
     const totalPages = data?.count ? Math.ceil(data.count / 10) : 0;
 
-    if (isInitialLoad) return <LoadingIndicator />; // пока нет totalSongsCount
+    // пока нет totalSongsCount
+    if (isInitialLoad) return <LoadingIndicator />;
+
+    // Если мы знаем, что песен 0, но идет фоновая проверка
+    if (totalCountData?.song_count === 0 && isCountRefetching) {
+        return <LoadingIndicator />;
+    }
+
     if (totalCountData?.song_count === 0) {
         return (
             <div className={styles.noSongsMessage}>
