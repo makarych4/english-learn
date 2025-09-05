@@ -132,13 +132,22 @@
     display: flex;
     justify-content: center;
     gap: 22px;
-    margin: 10px 0;
+}
+
+.iconRow {
+  position: sticky;
+  top: 0;
+  margin-left: -16px;
+  margin-right: -16px;
+  padding: 10px 0;
+  background-color: #fff;
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
 }
 
 .iconRowAnnotation {
   display: flex;
   margin-top: 30px;
-  
   gap: 100px;
   margin-bottom: 0;
 }
@@ -286,7 +295,7 @@
   position: fixed;
   z-index: 85;
   bottom: 100px;
-  right: 24px;
+  right: 16px;
 
   cursor: pointer;
 
