@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from '@tanstack/react-query';
+import ensureAuth from "../utils/authUtils";
 import Pagination from "./Pagination";
 import api from "../api";
 import SongChange from "./SongChange";
@@ -9,6 +10,22 @@ import styles from "../styles/SearchBarHome.module.css";
 import CloseIcon from "../assets/close2.svg";
 
 function SearchBar() {
+    const navigate = useNavigate();
+    const [isAuthReady, setIsAuthReady] = useState(false);
+
+    // useEffect ДЛЯ ПРОВЕРКИ АВТОРИЗАЦИИ ПЕРЕД ЗАПРОСАМИ
+    useEffect(() => {
+        const checkAuth = async () => {
+            const isAuthorized = await ensureAuth(navigate);
+
+            if (isAuthorized) {
+                setIsAuthReady(true);
+            }
+        };
+
+        checkAuth();
+    }, [navigate]); // Запускаем один раз при монтировании
+
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Читаем все параметры из URL. Если их нет, ставим значения по умолчанию.
@@ -32,6 +49,7 @@ function SearchBar() {
             const { data } = await api.get("/api/songs/count/");
             return data;
         },
+        enabled: isAuthReady,
         staleTime: Infinity,// никогда не запрашивать их снова
         refetchOnWindowFocus: false, // Не перезапрашивать при фокусе на окне
         cacheTime: 10 * 60 * 1000,
@@ -59,6 +77,7 @@ function SearchBar() {
         // Динамический ключ, зависит от URL
         queryKey: ['songs', 'user', { query, page, viewMode, selectedArtist, selectedTitle }],
         queryFn: fetchSongs,
+        enabled: isAuthReady,
         staleTime: Infinity,
         cacheTime: 10 * 60 * 1000,
     });
@@ -157,7 +176,7 @@ function SearchBar() {
     const totalPages = data?.count ? Math.ceil(data.count / 10) : 0;
 
     // пока нет totalSongsCount
-    if (isInitialLoad) return <LoadingIndicator />;
+    if (isInitialLoad || !isAuthReady) return <LoadingIndicator />;
 
     // Если мы знаем, что песен 0, но идет фоновая проверка
     if (totalCountData?.song_count === 0 && isCountRefetching) {

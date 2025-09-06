@@ -134,15 +134,33 @@
     gap: 22px;
 }
 
-.iconRow {
+.iconRowNotSticky {
+  display: flex;
+  justify-content: center;
+  gap: 94px;
+  padding: 0 41px 10px 60px; /* top | right | bottom | left */
+  margin-left: -16px;
+  margin-right: -16px;
+
+  padding-bottom: 10px;
+}
+
+.iconRowSticky {
   position: sticky;
+  display: flex;
+  justify-content: center;
+  gap: 100px;
   top: 0;
   margin-left: -16px;
   margin-right: -16px;
   padding: 10px 0;
   background-color: #fff;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid transparent; /* Всегда есть граница, но прозрачная */
+  transition: border-bottom-color 0.2s ease-in-out; /* Плавный переход только для цвета границы */
+}
+
+.iconRowSticky.hasBorder {
+  border-bottom-color: #ccc; /* Этот класс будет менять цвет границы */
 }
 
 .iconRowAnnotation {

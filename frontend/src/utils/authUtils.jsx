@@ -3,6 +3,7 @@ import api from "../api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 
 async function ensureAuth(navigate) {
+    console.log("ensureAuth запустился")
     const accessToken = localStorage.getItem(ACCESS_TOKEN);
     const refreshToken = localStorage.getItem(REFRESH_TOKEN);
 
@@ -14,21 +15,23 @@ async function ensureAuth(navigate) {
     try {
         const decoded = jwtDecode(accessToken);
         const now = Date.now() / 1000;
-        const gracePeriod = 10; 
+        const gracePeriod = 0; 
 
         if (decoded.exp < now + gracePeriod) {
-            console.log("Access token expired or expiring soon, refreshing...");
+            //console.log("Access token expired or expiring soon, refreshing...");
             const res = await api.post("/api/token/refresh/", { refresh: refreshToken });
 
             if (res.status === 200) {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access);
+                console.log("access токен обновился")
                 return true;
             } else {
+                console.log('"refresh token "протух"')
                 if (navigate) navigate("/logout");
                 return false;
             }
         }
-
+        console.log("access токен ещё рабочий")
         return true;
     } catch (error) {
         console.log("Auth error:", error);

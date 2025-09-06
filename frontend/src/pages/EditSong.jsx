@@ -7,6 +7,7 @@ import EditSongLyricsLine from "../components/EditSongLyricsLine";
 import BottomNavigation from '../components/BottomNavigation';
 import LoadingIndicator from "../components/LoadingIndicator";
 import ensureAuth from "../utils/authUtils";
+import useScrollTrigger from "../hooks/useScrollTrigger";
 import styles from "../styles/EditSong.module.css"
 import DeleteIcon from "../assets/trash.svg";
 import PublishIcon from "../assets/publish.svg";
@@ -14,6 +15,9 @@ import LinesIcon from "../assets/lines.svg";
 import SaveIcon from "../assets/save.svg";
 import EyeIcon from "../assets/eye.svg";
 import HighlighterIcon from "../assets/highlighter.svg";
+
+
+
 function EditSong() {
     const { songId } = useParams();
     const navigate = useNavigate();
@@ -39,9 +43,8 @@ function EditSong() {
 
         // ПРОВЕРКА ВЛАДЕНИЯ
         if (!ownershipRes.data.is_owner) {
-            // Если не владелец, выбрасываем специальную ошибку
             const error = new Error("User is not the owner of the song.");
-            error.isOwnershipError = true; // Добавляем флаг для кастомной обработки
+            error.isOwnershipError = true;
             throw error;
         }
 
@@ -55,13 +58,14 @@ function EditSong() {
     };
 
     const { data, isLoading, isError, error } = useQuery({
-        // Уникальный ключ для этой страницы
         queryKey: queryKey,
         queryFn: fetchAndVerifySongData,
         retry: false, // Отключаем повторные попытки при ошибке
         cacheTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false, // Не перезапрашивать при фокусе на окне
     });
+
+    const iconRowStickyRef = useScrollTrigger(styles.hasBorder, [isLoading]);
 
     const [lyrics, setLyrics] = useState(data?.lyrics || []);
     const [title, setTitle] = useState(data?.song?.title || "");
@@ -76,9 +80,9 @@ function EditSong() {
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [youtubeUrl, setYoutubeUrl] = useState("");
-    const [isDirty, setIsDirty] = useState(false); // Флаг несохраненных изменений
+    const [isDirty, setIsDirty] = useState(false);
 
-    // --- СОСТОЯНИЯ ДЛЯ АННОТАЦИЙ --- //
+    // СОСТОЯНИЯ ДЛЯ АННОТАЦИЙ
     const [isAnnotationMode, setIsAnnotationMode] = useState(false);
     const [isAlreadyInAnnotationMode, setIsAlreadyInAnnotationMode] = useState(false);
     const [selectedLineIds, setSelectedLineIds] = useState([]);
@@ -122,10 +126,9 @@ function EditSong() {
         if (error.isOwnershipError) {
             alert("У вас нет прав для редактирования этой песни.");
             navigate("/");
-            return null; // Рендерим ничего, пока происходит редирект
+            return null;
         }
         
-        // Обработка других ошибок
         if (error.name !== 'CanceledError') {
             alert("Не удалось загрузить данные для редактирования.");
             navigate("/");
@@ -135,18 +138,19 @@ function EditSong() {
 
     const blocker = useBlocker(isDirty);
 
+    // обработка логики подтверждения при покидании страницы
     useEffect(() => {
-        // Этот эффект теперь будет обрабатывать логику подтверждения
+        
         if (blocker && blocker.state === 'blocked') {
-            // Показываем стандартное диалоговое окно
             if (window.confirm("У Вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?")) {
-                blocker.proceed(); // Если "ОК", разрешаем переход
+                blocker.proceed();
             } else {
-                blocker.reset(); // Если "Отмена", сбрасываем блокировку
+                blocker.reset();
             }
         }
     }, [blocker]);
 
+    // стандартный показ сообщения браузера при покидании страницы
     useEffect(() => {
         const handleBeforeUnload = (e) => {
             if (isDirty) {
@@ -162,20 +166,17 @@ function EditSong() {
         };
     }, [isDirty]);
 
+    // блокировка скролла при показе оверлея
     useEffect(() => {
-        // Определяем, видимо ли хоть одно модальное окно
         const isOverlayVisible = showAnnotationModal || confirmDeleteLineId !== null;
 
         if (isOverlayVisible) {
-            // Блокируем скролл на <body>
             document.body.style.overflow = 'hidden';
         } else {
-            // Возвращаем скролл
             document.body.style.overflow = 'auto';
-
         }
 
-        // Функция очистки на случай, если пользователь уйдет со страницы
+        // Функция очистки, если пользователь уйдет со страницы
         return () => {
             document.body.style.overflow = 'auto';
         };
@@ -185,11 +186,10 @@ const handleOpenAnnotationToEdit = (annotationId) => {
     const annotation = annotations.find(anno => anno.id === annotationId);
     if (annotation) {
         if (!isEditingAnnotationLines) {
-            // Запоминаем ID того, что редактируем
             setEditingAnnotationId(annotationId);
         }
-        setCurrentAnnotationNote(annotation.note); // Заполняем поле текстом
-        setShowAnnotationModal(true); // Показываем модальное окно
+        setCurrentAnnotationNote(annotation.note);
+        setShowAnnotationModal(true);
     }
 };
 
@@ -206,7 +206,6 @@ const handleUpdateAnnotation = async () => {
 
     setIsSaving(true);
     try {
-        // Используем PATCH для частичного обновления
         const response = await api.patch(`/api/annotations/${editingAnnotationId}/`, { note: currentAnnotationNote });
         
         queryClient.setQueryData(queryKey, (oldData) => {
@@ -221,7 +220,7 @@ const handleUpdateAnnotation = async () => {
         
         setAnnotations(response.data.annotations);
 
-        closeAnnotationModal(); // Закрываем и сбрасываем все
+        closeAnnotationModal();
         alert("Аннотация обновлена!");
     } catch (error) {
         alert("Не удалось обновить аннотацию.");
@@ -913,13 +912,20 @@ return (
         </>
         )}
 
-        <div className={styles.iconRow}>
+        <div className={styles.iconRowNotSticky}>
             <div className={styles.iconContainer} onClick={handleDeleteSong}>
                 <img src={DeleteIcon} alt="Удалить" />
                 <span className={styles.iconLabel}>Удалить</span>
             </div>
 
-            {/* Новая иконка для режима аннотаций */}
+            {!isPublished && isVip && (<div className={styles.iconContainer} onClick={handlePublishSong}>
+                <img src={PublishIcon} alt="Опубликовать" />
+                <span className={styles.iconLabel}>Опубликовать</span>
+            </div>
+            )}
+        </div>
+
+         <div className={styles.iconRowSticky} ref={iconRowStickyRef}>
             <div className={styles.iconContainer} onClick={toggleAnnotationMode}>
                 <img src={HighlighterIcon} alt="Аннотации" />
                 <span className={styles.iconLabel}>Аннотации</span>
@@ -929,12 +935,6 @@ return (
                 <img src={EyeIcon} alt="Предварительный просмотр" />
                 <span className={styles.iconLabel}>Просмотр</span>
             </div>
-
-            {!isPublished && isVip && (<div className={styles.iconContainer} onClick={handlePublishSong}>
-                <img src={PublishIcon} alt="Опубликовать" />
-                <span className={styles.iconLabel}>Опубликовать</span>
-            </div>
-            )}
         </div>
 
         {isAnnotationMode ? (

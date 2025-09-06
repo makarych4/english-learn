@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import ensureAuth from "../utils/authUtils";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from "../api";
 import BottomNavigation from '../components/BottomNavigation';
@@ -8,6 +9,21 @@ import styles from "../styles/Profile.module.css";
 
 function Profile() {
     const navigate = useNavigate();
+    const [isAuthReady, setIsAuthReady] = useState(false);
+
+    // useEffect ДЛЯ ПРОВЕРКИ АВТОРИЗАЦИИ ПЕРЕД ЗАПРОСАМИ
+    useEffect(() => {
+        const checkAuth = async () => {
+            const isAuthorized = await ensureAuth(navigate);
+
+            if (isAuthorized) {
+                setIsAuthReady(true);
+            }
+        };
+
+        checkAuth();
+    }, [navigate]); // Запускаем один раз при монтировании
+
     const queryClient = useQueryClient();
     const queryKey = ['currentUser'];
 
@@ -19,6 +35,7 @@ function Profile() {
     const { data: userData, isLoading, isError, error } = useQuery({
         queryKey: queryKey, 
         queryFn: fetchUserData,
+        enabled: isAuthReady,
         staleTime: Infinity,
         cacheTime: 1000 * 60 * 60,
         refetchOnWindowFocus: false,
@@ -59,7 +76,11 @@ function Profile() {
         return regex.test(username);
     };
 
-    const handleUpdateUsername = (e) => {
+    const handleUpdateUsername = async (e) => {
+
+        const isAuth = await ensureAuth(navigate);
+            if (!isAuth) return;
+
         e.preventDefault();
 
         if (!validateUsername(newUsername)) {
@@ -86,7 +107,10 @@ function Profile() {
             .finally(() => setUsernameLoading(false));
     };
 
-    const handleChangePassword = (e) => {
+    const handleChangePassword = async (e) => {
+        const isAuth = await ensureAuth(navigate);
+            if (!isAuth) return;
+
         e.preventDefault();
         setPasswordLoading(true);
         api.post("/api/change-password/", {
