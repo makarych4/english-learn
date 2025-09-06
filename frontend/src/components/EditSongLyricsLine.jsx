@@ -111,9 +111,13 @@ return (
             />
         </div>
     </div>
-    {!isAnnotationMode && (<button className={styles.addButton} onClick={() => onAddLine(index + 1)}>
+    <button
+        className={styles.addButton}
+        onClick={() => onAddLine(index + 1)}
+        disabled={isAnnotationMode}
+    >
         Добавить строку
-    </button>)}
+    </button>
     </>
 );
 }

@@ -2,7 +2,7 @@
   padding: 16px;
   font-family: sans-serif;
   position: relative;
-  margin-bottom: 430px;
+  margin-bottom: 470px;
 }
 
 .buttonGroup {
@@ -42,6 +42,22 @@
 .addButton {
   background-color: #28a745;
   color: #fff;
+  min-height: 37px;
+  transition: 0.2s ease-in-out;
+  margin-bottom: 10px;
+}
+
+.addButton:disabled {
+  background-color: #5a6268; /* Темно-серый, почти как у Bootstrap */
+  color: #adb5bd;
+  cursor: default;
+}
+
+/* --- НОВЫЙ СТИЛЬ ДЛЯ СКРЫТИЯ --- */
+.addButton.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; /* Чтобы нельзя было нажать на невидимую кнопку */
 }
 
 .overlay {

@@ -889,21 +889,21 @@ return (
                     disabled={isAnnotationMode} // Блокируем редактирование в режиме аннотаций
                 />
             </label>
-            {!isAnnotationMode && (<button onClick={handleParseYoutubeUrl} className={styles.addButton}>
+            <button onClick={handleParseYoutubeUrl} className={styles.addButton} disabled={isAnnotationMode}>
                 Извлечь ID
-            </button>)}
+            </button>
         </div>
         <div>&nbsp;</div>
         <div>&nbsp;</div>
 
-        {isVip && !isAnnotationMode && (
+        {isVip && (
         <>
         <div className={styles.buttonGroup}>
-            <button className={styles.addButton} onClick={handleFillLyrics}>
+            <button className={styles.addButton} onClick={handleFillLyrics} disabled={isAnnotationMode}>
                 Заполнить текст с нуля
             </button>
             <div>&nbsp;</div>
-            <button className={styles.addButton} onClick={handleFillTranslations}>
+            <button className={styles.addButton} onClick={handleFillTranslations} disabled={isAnnotationMode}>
                 Заполнить пустые строки перевода
             </button>
         </div>
@@ -942,9 +942,9 @@ return (
         ) : (
             <h2 className={styles.h2text}>Редактирование текста</h2>
         )}
-        {!isAnnotationMode && (<button className={styles.addButton} onClick={() => handleAddLine(0)}>
+        <button className={styles.addButton} onClick={() => onAddLine(index + 1)} disabled={isAnnotationMode}>
             Добавить строку
-        </button>)}
+        </button>
         {lyrics.map((line, index) => (
             <EditSongLyricsLine
                 line={line}
@@ -965,7 +965,7 @@ return (
                 editingAnnotationId={editingAnnotationId}
             />
         ))}
-
+      
         {/* --- ПАНЕЛЬ УПРАВЛЕНИЯ АННОТАЦИЯМИ (появляется снизу) --- */}
         {isAnnotationMode && (
             <div className={`${styles.annotationPanel} fixed-class`}>
