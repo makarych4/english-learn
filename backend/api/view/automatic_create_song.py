@@ -10,6 +10,7 @@ from ..serializers import SongLyricsSerializer, SongSerializer
 
 """Создание строк песни, названия, исполнителя с API Genius, и youtube_id"""
 class CreateSongWithGeniusView(APIView):
+    throttle_scope = 'heavy_actions'
     def post(self, request, pk=None):
         title_input = request.data.get("title")
         artist_input = request.data.get("artist")
@@ -73,6 +74,7 @@ class CreateSongWithGeniusView(APIView):
 
 """Создание построчного перевода к песне"""
 class TranslateSongLyricsView(APIView):
+    throttle_scope = 'heavy_actions'
     def post(self, request, pk):
         try:
             song = Song.objects.get(id=pk, user=request.user)

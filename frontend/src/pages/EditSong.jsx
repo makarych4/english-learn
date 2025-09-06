@@ -942,7 +942,7 @@ return (
         ) : (
             <h2 className={styles.h2text}>Редактирование текста</h2>
         )}
-        <button className={styles.addButton} onClick={() => onAddLine(index + 1)} disabled={isAnnotationMode}>
+        <button className={styles.addButton} onClick={() => handleAddLine(0)} disabled={isAnnotationMode}>
             Добавить строку
         </button>
         {lyrics.map((line, index) => (

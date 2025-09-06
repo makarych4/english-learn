@@ -1,1 +1,6 @@
 .env
+
+pycache/
+*.py[cod]
+*$py.class
+*.so

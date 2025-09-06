@@ -58,7 +58,7 @@ function SongLearn() {
 
     if (isError && error.name !== 'CanceledError') {
         alert("Не удалось загрузить данные песни. Возможно, она не существует.");
-        navigate("/");
+        navigate("/search");
         return null; // Рендерим ничего во время редиректа
     }
 

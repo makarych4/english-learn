@@ -39,6 +39,19 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+
+    'DEFAULT_THROTTLE_RATES': {
+        # 'user' будет применяться ко всем эндпоинтам по умолчанию
+        'user': '120/minute', 
+        
+        # Создаем кастомные "скоупы" для разных операций
+        #'song_creation': '10/hour',   # Для создания песен
+        'heavy_actions': '2/m',     # Для "дорогих" действий (Genius, Translate)
+    }
 }
 
 SIMPLE_JWT = {

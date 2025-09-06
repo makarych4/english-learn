@@ -21,28 +21,31 @@ api.interceptors.request.use(
     }
 )
 
+// Этот код выполняется ПОСЛЕ получения ответа от сервера
 api.interceptors.response.use(
     (response) => {
-        // Если ответ успешный (статус 2xx), просто возвращаем его
+        // Если ответ успешный (статус 2xx), мы ничего не делаем и просто возвращаем его
         return response;
     },
     async (error) => {
         // Получаем исходный запрос, который вызвал ошибку
         const originalRequest = error.config;
 
-        // Если ошибка - 401 Unauthorized и это еще не повторный запрос
-        if (error.response.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true; // Помечаем запрос как повторный
-            
+        // Проверяем, что ошибка - это 401 Unauthorized,
+        // что мы еще не пытались повторить этот запрос,
+        // и что это не был запрос на обновление токена (защита от цикла).
+        if (error.response.status === 401 && !originalRequest._retry && originalRequest.url !== "/api/token/refresh/") {
+            originalRequest._retry = true; // Помечаем запрос, чтобы не повторять его бесконечно
+
             console.log("Access токен протух. Пытаемся обновить...");
 
             try {
                 const refreshToken = localStorage.getItem(REFRESH_TOKEN);
                 if (!refreshToken) {
-                    // Если нет refresh токена, сразу выкидываем на логин
-                    console.log("Refresh токен не найден. Перенаправление на /login.");
+                    // Если refresh токена нет, сессия точно закончилась
+                    console.log("Refresh токен не найден. Выход из системы.");
                     localStorage.clear();
-                    window.location.href = '/login';
+                    window.location.href = '/login'; // Жесткий редирект на страницу входа
                     return Promise.reject(error);
                 }
 
@@ -56,25 +59,27 @@ api.interceptors.response.use(
                     localStorage.setItem(ACCESS_TOKEN, res.data.access);
                     console.log("Access токен успешно обновлен.");
 
-                    // 3. Обновляем заголовок в исходном (проваленном) запросе
+                    // 3. Обновляем заголовок в нашем экземпляре axios для всех последующих запросов
                     api.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
+                    // И обновляем заголовок в оригинальном запросе, который мы собираемся повторить
                     originalRequest.headers['Authorization'] = `Bearer ${res.data.access}`;
 
                     // 4. Повторяем исходный запрос с новым токеном
+                    console.log("Повторяем оригинальный запрос:", originalRequest.url);
                     return api(originalRequest);
                 }
             } catch (refreshError) {
-                // Если запрос на обновление токена тоже провалился
+                // Если запрос на обновление токена тоже провалился (например, refresh токен протух)
                 console.error("Не удалось обновить токен:", refreshError);
-                localStorage.clear(); // Чистим хранилище
+                localStorage.clear(); // Полностью очищаем хранилище
                 window.location.href = '/login'; // Перенаправляем на логин
                 return Promise.reject(refreshError);
             }
         }
 
-        // Для всех остальных ошибок (не 401) просто возвращаем ошибку
+        // Для всех остальных ошибок (не 401, повторный 401, проваленный refresh) просто возвращаем ошибку дальше
         return Promise.reject(error);
     }
 );
 
-export default api
+export default api;
