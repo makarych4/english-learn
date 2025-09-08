@@ -83,14 +83,29 @@ function BottomNavigation({ active, onActiveClick }) {
   };
 
   const handleSearchClick = (e) => {
+    const params = new URLSearchParams(location.search);
+    console.log(params);
+    const viewMode = params.get("viewMode") || "songs";
+    const page = parseInt(params.get("page") || "1", 10);
+    const selectedArtist = params.get("selectedArtist");
+    const selectedTitle = params.get("selectedTitle");
+    console.log(selectedTitle);
+
     // 1. Проверяем, находимся ли мы уже на главной странице поиска
     if (location.pathname === '/search') {
+      const isStandard =
+      viewMode === "songs" &&
+      page === 1 &&
+      !selectedArtist &&
+      !selectedTitle;
       // Если да, то отменяем переход и фокусируемся на инпуте
-      e.preventDefault();
-      const input = document.getElementById('mainSearchInput');
-      if (input) {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        input.focus();
+      if (isStandard) {
+        e.preventDefault();
+        const input = document.getElementById('mainSearchInput');
+        if (input) {
+          input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          input.focus();
+        }
       }
     }
     // 2. Если мы на ЛЮБОЙ другой странице (например, /song/123),
