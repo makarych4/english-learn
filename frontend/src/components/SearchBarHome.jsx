@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import ensureAuth from "../utils/authUtils";
 import Pagination from "./Pagination";
 import api from "../api";
@@ -41,7 +42,7 @@ function SearchBar() {
     const isTouchDevice = typeof window !== "undefined" && 
                       ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
-    //const isInitialLoad = useRef(true); 
+    const queryClient = useQueryClient();
 
     const { data: totalCountData, isLoading: isInitialLoad, isRefetching: isCountRefetching} = useQuery({
         queryKey: ['totalSongsCount'],
@@ -82,27 +83,54 @@ function SearchBar() {
         cacheTime: 10 * 60 * 1000,
     });
 
-    // --- ШАГ 4: Эффект для задержки поиска (Debouncing) ---
+    useEffect(() => {
+        if (data && selectedArtist && selectedTitle) {
+            const otherViewMode = viewMode === "songs" ? "artists" : "songs";
+            const mirrorKey = ['songs', 'user', { query, page, viewMode: otherViewMode, selectedArtist, selectedTitle }];
+            queryClient.setQueryData(mirrorKey, data);
+            console.log("Зеркальные данные установлены в кэш", mirrorKey);
+        }
+    }, [data, selectedArtist, selectedTitle, viewMode, page, query, queryClient]);
+
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            // Если значение в инпуте отличается от того, что в URL, обновляем URL
             if (inputValue !== query) {
                 const trimmed = inputValue.trim();
 
-                if (trimmed && selectedArtist && selectedTitle) {
-                    // Если есть текст в запросе — сбрасываем выбранного артиста и песню
-                    updateSearchParams({
-                        query: inputValue,
-                        page: 1,
-                        selectedArtist: null,
-                        selectedTitle: null,
-                    });
+                // Если input пустой
+                if (!trimmed) {
+                    // В режиме группировки по исполнителям не сбрасываем выбранного исполнителя
+                    if (viewMode === "artists" && selectedArtist) {
+                        updateSearchParams({
+                            query: "",
+                            page: 1,
+                            selectedTitle: null,
+                        });
+                    } else {
+                        // В остальных случаях сбрасываем и исполнителя, и название
+                        updateSearchParams({
+                            query: "",
+                            page: 1,
+                            selectedArtist: null,
+                            selectedTitle: null,
+                        });
+                    }
                 } else {
-                    // Если запрос пустой — просто обновляем query
-                    updateSearchParams({
-                        query: inputValue,
-                        page: 1,
-                    });
+                    // Если есть текст в input — обычная логика
+                    if (viewMode === "artists" && selectedArtist) {
+                        updateSearchParams({
+                            query: inputValue,
+                            page: 1,
+                            selectedTitle: null,
+                        });
+                    } else {
+                        updateSearchParams({
+                            query: inputValue,
+                            page: 1,
+                            selectedArtist: null,
+                            selectedTitle: null,
+                        });
+                    }
                 }
             }
         }, 600); // Задержка 600мс

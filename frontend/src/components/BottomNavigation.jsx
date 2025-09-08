@@ -84,17 +84,17 @@ function BottomNavigation({ active, onActiveClick }) {
 
   const handleSearchClick = (e) => {
     const params = new URLSearchParams(location.search);
-    console.log(params);
     const viewMode = params.get("viewMode") || "songs";
+    const query = params.get("query");
     const page = parseInt(params.get("page") || "1", 10);
     const selectedArtist = params.get("selectedArtist");
     const selectedTitle = params.get("selectedTitle");
-    console.log(selectedTitle);
 
     // 1. Проверяем, находимся ли мы уже на главной странице поиска
     if (location.pathname === '/search') {
       const isStandard =
       viewMode === "songs" &&
+      !query &&
       page === 1 &&
       !selectedArtist &&
       !selectedTitle;
